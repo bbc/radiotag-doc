@@ -2,18 +2,26 @@
 % Sean O'Halpin (BBC R&D); Chris Lowis (BBC R&D)
 % 2012-06-13
 
-- Authors: Sean O'Halpin (BBC R&D); Chris Lowis (BBC R&D)
-- Contributors: Andy Buckingham (Global Media), Robin Cooksey (Frontier Silicon)
-- Published:
-  - Draft 1: 2011-09-01
-  - Draft 2: 2011-10-27
-  - Draft 3: 2012-02-08
+### Authors
+
+Sean O'Halpin (BBC R&D), Chris Lowis (BBC R&D)
+
+### Contributors
+
+Andy Buckingham (Global Media), Robin Cooksey (Frontier Silicon)
+
+### Published
+
+- Draft 1: 2011-09-01
+- Draft 2: 2011-10-27
+- Draft 3: 2012-02-08
     - Changed /register return code from 201 to 204
-  - Draft 4: 2012-06-13
+- Draft 4: 2012-06-13
     - Conversion to pandoc markdown format
 
-- URL:
-  [http://radiotag.prototyping.bbc.co.uk/docs/radiotag-api-proposal-v1.00d4.html](http://radiotag.prototyping.bbc.co.uk/docs/radiotag-api-proposal-v1.00d3.html)
+### URL
+
+[http://radiotag.prototyping.bbc.co.uk/docs/radiotag-api-proposal-v1.00d4.html](http://radiotag.prototyping.bbc.co.uk/docs/radiotag-api-proposal-v1.00d3.html)
 
 ## Abstract
 
