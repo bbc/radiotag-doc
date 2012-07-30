@@ -167,3 +167,18 @@ td {
     padding: 8pt;
     vertical-align: top;
 }
+
+/* Print */
+@media print {
+    body, input, textarea, button, select {
+        margin-left: 1.5cm;
+        margin-right: 1.5cm;
+        font-size: 10pt;
+    }
+    h1 {
+    /* page-break-before: right; */
+    }
+    h2 {
+        page-break-before: always;
+    }
+}
