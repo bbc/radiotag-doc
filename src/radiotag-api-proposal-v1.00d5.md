@@ -18,8 +18,11 @@ Andy Buckingham (Global Radio), Robin Cooksey (Frontier Silicon)
     - Changed /register return code from 201 to 204
 - Draft 4: 2012-06-13
     - Conversion to pandoc markdown format
-- Draft 5: 2012-06-14
-    - Conversion to pandoc markdown format
+- Draft 5: 2012-07-30
+    - Consistent capitalization of headers
+    - Moved Narrative section into Appendix
+    - 'Anonymous' becomes 'unidentified', 'unpaired' becomes 'receiver', 'paired' becomes 'personal'
+    - 'client' becomes 'receiver'
 
 ### URL
 
@@ -29,17 +32,17 @@ Andy Buckingham (Global Radio), Robin Cooksey (Frontier Silicon)
 
 This document specifies version 1.00 of the RadioTAG protocol.
 
-The RadioTAG protocol defines how a client (e.g. an IP-enabled radio)
+The RadioTAG protocol defines how a receiver (e.g. an IP-enabled radio)
 discovers whether a broadcaster supports RadioTAG and if so how it then
 communicates with a broadcaster-provided web service to record the time
 and station being listened to.
 
-The protocol defines how a client obtains authorization to store data on
-the server and how it can become paired with a user account so that data
+The protocol defines how a receiver obtains authorization to store data on
+the server and how it can become paired with a personal account so that data
 can be accessed via the web.
 
 The protocol also defines the format and content of the requests and
-responses that pass between the client and server.
+responses that pass between the receiver and server.
 
 ## How to read this document
 
@@ -50,7 +53,7 @@ underlying the RadioTAG protocol. These concepts are summarized in the
 To get an idea of how the RadioTAG protocol works in practice, read
 the two [narratives](#sec-5) in the Appendix. These step through the
 two most common scenarios to show what is communicated between the
-client (radio) and the tag service at the HTTP level. This section is
+receiver (radio) and the tag service at the HTTP level. This section is
 particularly useful for developers who want to understand how the
 various bits of the API hang together.
 
@@ -62,10 +65,10 @@ element contains and what limits apply, see [data formats](#sec-7).
 
 ## Concepts
 
-A client sends a tag request to a tag service, specifying a time and
+A receiver sends a tag request to a tag service, specifying a time and
 station. The tag service responds by sending a tag entry containing
 relevant metadata. The tag data may be stored on the server and may be
-viewed on the client or on the web or be used for another application.
+viewed on the receiver or on the web or be used for another application.
 
 ### Service discovery
 
@@ -91,17 +94,17 @@ Format](http://tools.ietf.org/html/rfc4287) as [specified
 below](#sec-7). A tag response could contain programme, now playing
 metadata, an advertising message or the response to a call for action.
 
-### Clients, radios and devices
+### Receivers, radios and devices
 
-In this specification, the **client** is any device or software program
-that implements the client side of the RadioTAG specification. While
+In this specification, the **receiver** is any device or software program
+that implements the receiver side of the RadioTAG specification. While
 this would most commonly be an IP-enabled radio, it could also be, say,
 an application running on a mobile phone or in a web browser.
 
 ### The tag service
 
 The **tag service** is the web service provided by the broadcaster to
-respond to client requests. It must implement a number of endpoints
+respond to receiver requests. It must implement a number of endpoints
 depending on the level of service it provides.
 
 ### Levels of identity
@@ -150,13 +153,13 @@ provide the following endpoint:
 
 A `POST` to this endpoint should return metadata relevant to the station
 and time specified in the request. Tags are *not* stored on the server
-so it is not possible to retrieve a list of tags on the client.
+so it is not possible to retrieve a list of tags on the receiver.
 
 ### Receiver identity
 
 Receiver identity is designed to provide an "out-of-the-box"
 experience without the user having to create an account and pair the
-client. The protocol enables the receiver to become authorized to
+receiver. The protocol enables the receiver to become authorized to
 store tags on the server without being associated with an
 authenticated user account.
 
@@ -169,22 +172,22 @@ to `POST /tag`. It must provide the following endpoints:
 - [GET /tags](#sec-6-6)
 
 Tags are stored on the server. The server must be able to store at least
-10 tags per client. There is no upper limit. A typical implementation
+10 tags per receiver. There is no upper limit. A typical implementation
 would store the tags as a FIFO list. When the list is full, a new tag
 would replace the oldest in the list.
 
-A client should implement an interface to display the current list of
+A receiver should implement an interface to display the current list of
 tags associated with it as returned by the `GET /tags` method.
 
-Note that with receiver identification, the client ('receiver') stores
+Note that with receiver identification, the receiver stores
 a token which uniquely identifies it to the tag service for the
-lifetime of that token only. If that identity is reset by the client
+lifetime of that token only. If that identity is reset by the receiver
 deleting the token, any tags which have been submitted against it are
 effectively orphaned.
 
 ### Account identity
 
-Account identification is where the client has been paired to an
+Account identification is where the receiver has been paired to an
 authenticated user's account on a tag service. The same limits apply
 as for receiver identification, though a typical implementation will
 not put any limit on how many tags a user can create.
@@ -203,13 +206,13 @@ following endpoints:
 Authorization is based on OAuth 2.0. The central concepts here are
 **tokens** and **grants**.
 
-To store or retrieve anything at the tag service, a client needs a
-**token**. A valid token authorizes the client to perform a specific set
+To store or retrieve anything at the tag service, a receiver needs a
+**token**. A valid token authorizes the receiver to perform a specific set
 of actions. In the case of RadioTAG, those actions are to [create a
 tag](#sec-6-4) or [get a list of tags](#sec-6-6) for either an
 [receiver](#sec-3-9) or [personal](#sec-3-10) account.
 
-To obtain a token, the client must use the **grant** passed back from
+To obtain a token, the receiver must use the **grant** passed back from
 the server in a response header.
 
 A **token** is like a key. If you have it in your hand, you can open the
@@ -222,10 +225,10 @@ attempt to obtain the corresponding token.
 --------------------------------------------------------------------------------------
 Term              Definition
 ---------------   --------------------------------------------------------------------
-Receiver          The client or device which interacts with the RadioTAG service
+Receiver          The device or user agent which interacts with the RadioTAG service
 
-Receiver account  A RadioTAG account associated only with a specific device or client,
-                  i.e. where a receiver has not been associated with a user account
+Receiver account  A RadioTAG account associated only with a specific device or user
+                  agent, i.e. where a receiver has not been associated with a user account
 
 Personal account  A RadioTAG account where a receiver has been associated with a user
                   account, and which can then be accessed from any receiver which has
@@ -252,7 +255,7 @@ encoded POST parameters.
 Responses pass data back in a combination of HTTP headers and XML.
 
 While headers are shown here in a canonical form, due to the fact that
-proxies and other intermediaries may adjust HTTP headers, both client
+proxies and other intermediaries may adjust HTTP headers, both receiver
 and server implementations should be prepared to accept header *keys*
 in any mixture of upper and lower case. One common way to handle this
 is to downcase all header keys on reading. Header *values* on the
@@ -271,7 +274,7 @@ RadioTAG-Service-Provider    The display name of the tag service provider
 RadioTAG-Account-Name        The display name of the associated paired account
 
 RadioTAG-Auth-Token          The authorization token for an unpaired or paired
-                             client
+                             receiver
 
 --------------------------------------------------------------------------------
 
@@ -279,9 +282,9 @@ The `RadioTAG-Service-Provider` header should be returned in all
 responses.
 
 The `RadioTAG-Account-Name` should be returned in all responses to
-requests made by a paired client.
+requests made by a paired receiver.
 
-The `RadioTAG-Auth-Token` header is returned when the client has been
+The `RadioTAG-Auth-Token` header is returned when the receiver has been
 granted authorization. It also enables the tag service to issue a new
 token to replace an old one - see the next section.
 
@@ -289,14 +292,14 @@ token to replace an old one - see the next section.
 
 The tag service can change the `RadioTAG-Auth-Token` in response to
 any authorized request (i.e. one which contains a valid Auth Token). The
-client should *always* use the last received Auth Token and update any
+receiver should *always* use the last received Auth Token and update any
 stored value from that. This provides a way for a tag service to expire
 tokens.
 
 We recommend that tag service implementations allow a period of grace in
 which an expired token can co-exist with its replacement. This will
 address the case where the token was updated but the response was not
-received by the client.
+received by the receiver.
 
 ### POST /tag
 
@@ -361,8 +364,8 @@ RadioTAG-Grant-Token         The token to use when exercising the grant.
 A grant header is *not* returned in the following cases:
 
 - the server supports only unidentified tagging
-- the client is already using a personal account token
-- the client is using a receiver account token and the tag service doesn't
+- the receiver is already using a personal account token
+- the receiver is using a receiver account token and the tag service doesn't
   support personal accounts
 
 ##### Body
@@ -655,7 +658,7 @@ HTTP Status Code  HTTP Status   Explanation
 
 401               Unauthorized  The grant is missing or invalid
 
-403               Forbidden     The grant is valid but the client is not allowed
+403               Forbidden     The grant is valid but the receiver is not allowed
                                 to make this request
 
 --------------------------------------------------------------------------------
@@ -1136,7 +1139,7 @@ RadioTAG-Service-Provider    16
 
 ### Unpaired to paired
 
-This section describes the requests and responses made between a client
+This section describes the requests and responses made between a receiver
 and a RadioTAG server when the server supports both unpaired and paired
 tagging.
 
@@ -1145,7 +1148,7 @@ tagging.
 After tuning to BBC Radio 4, a RadioDNS look-up is performed to resolve
 the broadcast parameters into a `hostname` for the RadioTAG service.
 
-Having ascertained that the service supports RadioTAG, the client makes
+Having ascertained that the service supports RadioTAG, the receiver makes
 available a `Tag` button.
 
 #### Press tag
@@ -1154,12 +1157,12 @@ The user presses the `Tag` button.
 
 ##### Request
 
-The client makes a POST request to the tag service with the `station`
+The receiver makes a POST request to the tag service with the `station`
 identifier (using the broadcast parameter string used in constructing a
 RadioDNS FQDN), and a `time`. Unix Time is used for the `time`
 parameter.
 
-As this client has no Auth Token, the `Radiotag-Auth-Token` header is
+As this receiver has no Auth Token, the `Radiotag-Auth-Token` header is
 blank. It could also simply not be there at all. The following sequence
 of events is also triggered when the request contains an invalid
 authentication token.
@@ -1207,7 +1210,7 @@ Must request token
 
 ##### Request
 
-The client POSTs the grant to the `/token` endpoint to request a token
+The receiver POSTs the grant to the `/token` endpoint to request a token
 to create tags.
 
 ~~~~ {.example}
@@ -1221,7 +1224,7 @@ grant_scope=unpaired&grant_token=b86bfdfb-5ff5-4cc7-8c61-daaa4804f188
 
 ##### Response
 
-The authentication token is returned to the client in the headers of a
+The authentication token is returned to the receiver in the headers of a
 `204 No Content` response.
 
 ~~~~ {.example}
@@ -1235,7 +1238,7 @@ RadioTAG-Auth-Token: e2300af3-bad6-45f8-ba38-6bcb025ca210↵
 
 ##### Request
 
-Now the client has successfully exchanged a grant for a token, the tag
+Now the receiver has successfully exchanged a grant for a token, the tag
 request can be made again, this time passing the authentication token in
 a header of a POST request to `/tag`.
 
@@ -1298,8 +1301,8 @@ Content-Length: 1032↵
 
 In the previous, successful `/tag` request, the server's response
 contained a `can_register` grant. The presence of this grant indicates
-to the client that the server supports the pairing a client with a user
-account. At this stage the client can present to the user the option to
+to the receiver that the server supports the pairing a receiver with a user
+account. At this stage the receiver can present to the user the option to
 register with the server, or to accept the information in the current
 tag and return to the default state for the station.
 
@@ -1309,7 +1312,7 @@ In this case, we chose the latter by pressing `OK`.
 
 As the server supports unpaired tagging the tags created so far have
 been stored on the server against the authentication token, which stands
-in for a client id. The client can request a list of tags by making a
+in for a receiver id. The receiver can request a list of tags by making a
 GET request to `/tags` with the authentication token in the header:
 
 ##### Request
@@ -1363,7 +1366,7 @@ Content-Length: 1042↵
 #### Press Tag
 
 We now show the flow of interactions when a user decides to register
-their client with the service. The process begins with the user pressing
+their receiver with the service. The process begins with the user pressing
 the `Tag` button as before.
 
 ##### Request
@@ -1381,9 +1384,9 @@ station=0.c224.ce15.ce1.dab&time=1319201989
 ##### Response
 
 The response in this case is a `201 Created`, since the service supports
-unpaired tagging and the client has passed in the authentication token
+unpaired tagging and the receiver has passed in the authentication token
 with the request to `/tag`. Again the response contains a `can_register`
-grant. The client uses the presence of this grant to decide to display
+grant. The receiver uses the presence of this grant to decide to display
 the option to register.
 
 ~~~~ {.example}
@@ -1422,8 +1425,8 @@ Content-Length: 1032↵
 
 #### Press Register
 
-This time the user selects the option to register on the client. The
-client requires an identifier to identify itself to the server during
+This time the user selects the option to register on the receiver. The
+receiver requires an identifier to identify itself to the server during
 the registration process. It requests this from the tag service by
 making a POST request to the `/registration_key` endpoint, sending back
 the `grant_scope` and `grant_token` from the previous response.
@@ -1465,7 +1468,7 @@ implemented:
 
 > The desired outcome of registering is that the registration key is
 > associated with a user's account and a PIN returned to the user. The
-> combination of registration key (which is already known to the client)
+> combination of registration key (which is already known to the receiver)
 > and the PIN will be used to request an authenticated token in the
 > `/register` step below. The tag service needs then to be able to map
 > that token to the corresponding user account.
@@ -1477,7 +1480,7 @@ implemented:
 > form.
 >
 > This causes a request to be made to the service which has previously
-> stored the registration key that was issued to the client in the
+> stored the registration key that was issued to the receiver in the
 > previous step. The service then checks the authenticity and, if valid,
 > issues a PIN number, which is then displayed to the user.
 >
@@ -1488,12 +1491,12 @@ implemented:
 #### Enter the PIN
 
 The user enters the PIN number obtained in the previous step into their
-client, which then makes a POST request to `/register` with the
+receiver, which then makes a POST request to `/register` with the
 registration key and PIN in the body of the request.
 
 Note that the previously issued authentication token for unpaired
 tagging is included in the header of the request. This allows the server
-to migrate tags from an unpaired client to the user's account.
+to migrate tags from an unpaired receiver to the user's account.
 
 ##### Request
 
@@ -1514,9 +1517,9 @@ indicate that a new token has been created. The response headers contain
 the new authentication token (`RadioTAG-Auth-Token`), which is to be
 used for future tagging requests that wish to be associated with this
 user account. Also in the headers is the user account name
-(`RadioTAG-Account-Name`). This account name can be used by the client
+(`RadioTAG-Account-Name`). This account name can be used by the receiver
 to provide a reminder or prompt to the user in case they are unsure of
-the account they used to register the client.
+the account they used to register the receiver.
 
 ~~~~ {.example}
 HTTP/1.1 204 No Content↵
@@ -1530,7 +1533,7 @@ RadioTAG-Account-Name: sean↵
 
 #### Press Tag
 
-The client now has a token which identifies the client with the user
+The receiver now has a token which identifies the receiver with the user
 account on the server. Subsequent tag requests are made as POSTs to
 `/tag` with this token sent in the request headers, so that they can be
 stored against the user's account.
@@ -1585,9 +1588,9 @@ Content-Length: 1032↵
 
 #### Press Tags
 
-The client can again request a list of tags, this time using the new
+The receiver can again request a list of tags, this time using the new
 authentication token. The server has migrated the tags created while the
-client was unpaired to the user's account, so all three tags created
+receiver was unpaired to the user's account, so all three tags created
 above are returned in the Atom feed.
 
 ##### Request
@@ -1660,10 +1663,10 @@ Content-Length: 2268↵
 ### Unidentified to personal account
 
 This section shows the HTTP traces of transactions between a RadioTAG
-client (e.g. a radio) and a RadioTAG service. It covers the scenario
+receiver (e.g. a radio) and a RadioTAG service. It covers the scenario
 where the RadioTAG service permits *unidentified* tagging upgradeable
 to *personal account* tagging, i.e. it provides a response to an
-unauthorized client but does not store tags until the client has been
+unauthorized receiver but does not store tags until the receiver has been
 paired with a user account.
 
 Here we deal only with the differences between this scenario and the
@@ -1689,13 +1692,13 @@ station=0.c224.ce15.ce1.dab&time=1319202059
 
 ##### Response
 
-The response is a `200 OK` rather than a `201 Created`. The client
-should remember this result for later as it indicates that the client
+The response is a `200 OK` rather than a `201 Created`. The receiver
+should remember this result for later as it indicates that the receiver
 should resubmit the tag request after registration.
 
 Note that just like the unpaired case, the response contains a
-`can_register` grant. The client can use this to provide the choice to
-accept the result or to register the client.
+`can_register` grant. The receiver can use this to provide the choice to
+accept the result or to register the receiver.
 
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
@@ -1733,7 +1736,7 @@ Content-Length: 973↵
 
 #### Press OK
 
-At this point, the client can forget the stored `200 OK` result code.
+At this point, the receiver can forget the stored `200 OK` result code.
 
 #### Press Tags
 
@@ -1778,7 +1781,7 @@ station=0.c224.ce15.ce1.dab&time=1319202059
 
 ##### Response
 
-Again, the client should remember that the return code for this `/tag`
+Again, the receiver should remember that the return code for this `/tag`
 request is 200.
 
 ~~~~ {.example}
@@ -1864,7 +1867,7 @@ registration_key=4fa9ed43&pin=9666
 
 ##### Response
 
-The client has now completed the pairing process so receives an
+The receiver has now completed the pairing process so receives an
 `RadioTAG-Auth-Token` header which it should include as a request
 header in all future requests.
 
@@ -1880,8 +1883,8 @@ RadioTAG-Account-Name: sean↵
 
 ##### Request
 
-The client should have stored the result of the previous request to
-`/tag`. As it was a `200 OK` rather than `201 Created`, the client knows
+The receiver should have stored the result of the previous request to
+`/tag`. As it was a `200 OK` rather than `201 Created`, the receiver knows
 it should resubmit the tag request, this time including the newly
 acquired `RadioTAG-Auth-Token` in the request header:
 
