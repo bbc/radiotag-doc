@@ -46,14 +46,32 @@ body, input, textarea, button, select {
 }
 
 a {
-    color: #404080;
-}
-
-a {
     color: inherit;
     background-color: inherit;
     font: inherit;
-    text-decoration: underline;
+}
+
+@media screen {
+    a {
+        color: #404080;
+        text-decoration: underline;
+    }
+}
+
+@media print {
+    a {
+        text-decoration: none;
+    }
+
+    /* a:link:after, */
+    /* a:visited:after { */
+    /*     content: " (" attr(href) ") "; */
+    /*     font-size: 90%; */
+    /* } */
+    /* html.noted a:link:after, */
+    /* html.noted a:visited:after { */
+    /*     content: ""; */
+    /* } */
 }
 
 h1 > a {
