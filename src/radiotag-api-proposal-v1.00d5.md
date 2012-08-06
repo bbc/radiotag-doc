@@ -437,7 +437,8 @@ Content-Type: application/xml;charset=utf-8↵
 Content-Length: 957↵
 ↵
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+      xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>PM</title>
   <link href="http://radiotag.example.com"/>
   <link href="http://radiotag.example.com" rel="self"/>
@@ -446,6 +447,9 @@ Content-Length: 957↵
     <name>BBC</name>
   </author>
   <id>urn:uuid:fb669d2c-63b3-420b-9dd6-131f5d58e68a</id>
+  <os:totalResults>1</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>PM</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
@@ -491,7 +495,8 @@ Content-Type: application/xml;charset=utf-8↵
 Content-Length: 958↵
 ↵
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+      xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>PM</title>
   <link href="http://radiotag.example.com"/>
   <link href="http://radiotag.example.com" rel="self"/>
@@ -500,6 +505,9 @@ Content-Length: 958↵
     <name>BBC</name>
   </author>
   <id>urn:uuid:8facc0c0-ce13-4349-8664-dc71d55c6c97</id>
+  <os:totalResults>1</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>PM</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
@@ -544,7 +552,8 @@ Content-Type: application/xml;charset=utf-8↵
 Content-Length: 992↵
 ↵
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+      xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Meet David Sedaris</title>
   <link href="http://radiotag.example.com"/>
   <link href="http://radiotag.example.com" rel="self"/>
@@ -553,6 +562,9 @@ Content-Length: 992↵
     <name>BBC</name>
   </author>
   <id>urn:uuid:5001c814-7a28-42a4-b35a-eef17abc7249</id>
+  <os:totalResults>1</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>Meet David Sedaris</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
@@ -592,7 +604,8 @@ Content-Type: application/xml;charset=utf-8↵
 Content-Length: 992↵
 ↵
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+      xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Meet David Sedaris</title>
   <link href="http://radiotag.example.com"/>
   <link href="http://radiotag.example.com" rel="self"/>
@@ -601,6 +614,9 @@ Content-Length: 992↵
     <name>BBC</name>
   </author>
   <id>urn:uuid:5001c814-7a28-42a4-b35a-eef17abc7249</id>
+  <os:totalResults>1</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>Meet David Sedaris</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
@@ -709,7 +725,26 @@ RadioTAG-Auth-Token    receiver token OR user token
 
 ##### Parameters
 
-None.
+----------------------------------------------------------------
+Name                   Value
+-----------   --------------------------------------------------
+startIndex    (Optional) the 1-based index of the first result
+
+itemsPerPage  (Optional) maximum number of entries to return
+
+----------------------------------------------------------------
+
+If the caller does not specify `startIndex`, it defaults to 1.
+
+If the caller does not specify `itemsPerPage`, the number of entries
+returned is determined by the server.
+
+The server specifies the total number of entries that can be returned
+in the result set using the `totalResults` element (see below).
+
+Note: the `startIndex`, `itemsPerPage` and `totalResults` parameters
+are based on the [OpenSearch
+specification](http://www.oclc.org/developer/platform/query-responses).
 
 ##### Example
 
@@ -768,7 +803,8 @@ Content-Type: application/xml;charset=utf-8↵
 Content-Length: 974↵
 ↵
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+       xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Tag List</title>
   <link href="http://radiotag.example.com/tags"/>
   <link href="http://radiotag.example.com/tags" rel="self"/>
@@ -777,11 +813,14 @@ Content-Length: 974↵
     <name>BBC</name>
   </author>
   <id>urn:uuid:6a041e97-65bb-4b12-82da-c1b373731905</id>
+  <os:totalResults>1</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>PM</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
     <radiotag:service>BBC Radio 4</radiotag:service>
-    <link rel="image" href="http://node1.bbcimg.co.uk/iplayer/images/episode/b012wjd3_150_84.jpg"/>
+    <link rel="image" href="http://radiotag.bbc.co.uk/images/episode/b012wjd3_150_84.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b012wjd3?t=1328"/>
     <id>urn:uuid:9f61f2c1-f3f7-4ff7-bc61-32f0e468054d</id>
     <updated>2011-08-02T17:22:08+01:00</updated>
@@ -1018,7 +1057,8 @@ The example below shows these elements in context:
 
 ~~~~ {.example}
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+      xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Meet David Sedaris</title>
   <link href="http://radiotag.example.com"/>
   <link href="http://radiotag.example.com" rel="self"/>
@@ -1027,6 +1067,9 @@ The example below shows these elements in context:
     <name>BBC</name>
   </author>
   <id>urn:uuid:5001c814-7a28-42a4-b35a-eef17abc7249</id>
+  <os:totalResults>1</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>Meet David Sedaris</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
@@ -1045,7 +1088,8 @@ The example below shows these elements in context:
 
 ~~~~ {.example}
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+      xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Tag List</title>
   <link href="http://radiotag.example.com/tags"/>
   <link href="http://radiotag.example.com/tags" rel="self"/>
@@ -1054,6 +1098,9 @@ The example below shows these elements in context:
     <name>BBC</name>
   </author>
   <id>urn:uuid:bf3e7d30-ccb8-4b45-b438-c790fb2ec5f7</id>
+  <os:totalResults>3</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>3</os:itemsPerPage>
   <entry>
     <title>PM</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
@@ -1278,7 +1325,8 @@ Content-Type: application/xml;charset=utf-8↵
 Content-Length: 1032↵
 ↵
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+      xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Feedback</title>
   <link href="http://radiotag.bbc.co.uk"/>
   <link href="http://radiotag.bbc.co.uk" rel="self"/>
@@ -1287,6 +1335,9 @@ Content-Length: 1032↵
     <name>BBC</name>
   </author>
   <id>urn:uuid:661417da-cb8d-4fd0-a8fd-9b55ed2086d7</id>
+  <os:totalResults>1</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>Feedback</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
@@ -1344,7 +1395,8 @@ Content-Type: application/xml;charset=utf-8↵
 Content-Length: 1042↵
 ↵
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+      xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Tag List</title>
   <link href="http://radiotag.bbc.co.uk/tags"/>
   <link href="http://radiotag.bbc.co.uk/tags" rel="self"/>
@@ -1353,6 +1405,9 @@ Content-Length: 1042↵
     <name>BBC</name>
   </author>
   <id>urn:uuid:8eca1859-bb85-4c23-ba06-d078f6bfc9f5</id>
+  <os:totalResults>1</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>Feedback</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
@@ -1404,7 +1459,8 @@ Content-Type: application/xml;charset=utf-8↵
 Content-Length: 1032↵
 ↵
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+      xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Feedback</title>
   <link href="http://radiotag.bbc.co.uk"/>
   <link href="http://radiotag.bbc.co.uk" rel="self"/>
@@ -1413,6 +1469,9 @@ Content-Length: 1032↵
     <name>BBC</name>
   </author>
   <id>urn:uuid:4b8a1b72-f76b-4dc2-9db8-cb15042454ea</id>
+  <os:totalResults>1</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>Feedback</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
@@ -1567,7 +1626,8 @@ Content-Type: application/xml;charset=utf-8↵
 Content-Length: 1032↵
 ↵
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+      xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Feedback</title>
   <link href="http://radiotag.bbc.co.uk"/>
   <link href="http://radiotag.bbc.co.uk" rel="self"/>
@@ -1576,6 +1636,9 @@ Content-Length: 1032↵
     <name>BBC</name>
   </author>
   <id>urn:uuid:5967db0e-dc63-428d-a075-90cf316ded5d</id>
+  <os:totalResults>1</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>Feedback</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
@@ -1619,7 +1682,8 @@ Content-Type: application/xml;charset=utf-8↵
 Content-Length: 2268↵
 ↵
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+      xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Tag List</title>
   <link href="http://radiotag.bbc.co.uk/tags"/>
   <link href="http://radiotag.bbc.co.uk/tags" rel="self"/>
@@ -1628,6 +1692,9 @@ Content-Length: 2268↵
     <name>BBC</name>
   </author>
   <id>urn:uuid:93beb9c2-0b8d-49ad-a813-c1e6120f63b9</id>
+  <os:totalResults>3</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>3</os:itemsPerPage>
   <entry>
     <title>Feedback</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
@@ -1715,7 +1782,8 @@ Content-Type: application/xml;charset=utf-8↵
 Content-Length: 973↵
 ↵
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+      xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>The Archers</title>
   <link href="http://radiotag.bbc.co.uk"/>
   <link href="http://radiotag.bbc.co.uk" rel="self"/>
@@ -1724,6 +1792,9 @@ Content-Length: 973↵
     <name>BBC</name>
   </author>
   <id>urn:uuid:3bfaa9dd-11ed-45f9-8f3c-6587db086b04</id>
+  <os:totalResults>1</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>The Archers</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
@@ -1799,7 +1870,8 @@ Content-Type: application/xml;charset=utf-8↵
 Content-Length: 973↵
 ↵
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+      xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>The Archers</title>
   <link href="http://radiotag.bbc.co.uk"/>
   <link href="http://radiotag.bbc.co.uk" rel="self"/>
@@ -1808,6 +1880,9 @@ Content-Length: 973↵
     <name>BBC</name>
   </author>
   <id>urn:uuid:8ea43558-70c2-4a4a-aeb9-8ffeee700898</id>
+  <os:totalResults>1</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>The Archers</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
@@ -1920,7 +1995,8 @@ Content-Type: application/xml;charset=utf-8↵
 Content-Length: 973↵
 ↵
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
+      xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>The Archers</title>
   <link href="http://radiotag.bbc.co.uk"/>
   <link href="http://radiotag.bbc.co.uk" rel="self"/>
@@ -1929,6 +2005,9 @@ Content-Length: 973↵
     <name>BBC</name>
   </author>
   <id>urn:uuid:fcbb6008-aa54-45b4-91c9-78ec0655f9d7</id>
+  <os:totalResults>1</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>The Archers</title>
     <radiotag:sid>0.c224.ce15.ce1.dab</radiotag:sid>
