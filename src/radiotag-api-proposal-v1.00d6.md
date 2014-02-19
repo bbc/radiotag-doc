@@ -28,6 +28,7 @@ Andy Buckingham (togglebit), Robin Cooksey (Frontier Silicon)
     - 'can_register' changed to 'identity'
 - Draft 6: 2014-02-
     - Updated terminology to reflect CPA terms
+    - Replaced Tag auth procedure with draft CPA procedure
 
 ### URL
 
@@ -112,6 +113,14 @@ The **tag service** is the web service provided by the broadcaster to
 respond to client requests. It must implement a number of endpoints
 depending on the level of service it provides.
 
+### Authentication
+
+This proposal does not directly provide an authentication solution.
+The tag application should be secured using the processes detailed in
+the EBU's Cross Platform Authentication (CPA) specification. This
+specification simply aims to highlight the important components and
+the direct impact they have on the implementation of tagging.
+
 ### Levels of identity
 
 There are three levels of identity a tag service can provide:
@@ -150,7 +159,7 @@ an online user account. These are the possible combinations:
 - Client upgradeable to user
 
 The client and user levels map directly to the equivalant levels of authentication
-offered within the EBU Cross Platform Authentication (CPA) specification.
+offered within the CPA specification.
 
 ### No identity
 
@@ -172,12 +181,14 @@ store tags on the server without being associated with an
 authenticated user account.
 
 To indicate that it supports client identity, the server must issue
-a `client` [grant](#authorization) in response to an unauthorized request
+a `WWW-Authenticate` response-header to an unauthorized request
 to `POST /tag`. It must provide the following endpoints:
 
 - [POST /tag](#post-tag)
-- [POST /token](#post-token)
 - [GET /tags](#get-tags)
+
+In addition it must adhere fully to Client mode within the CPA
+specification.
 
 Tags are stored on the server. The server must be able to store at least
 10 tags per client. There is no upper limit. A typical implementation
@@ -204,15 +215,12 @@ A tag service that enables tagging with a user identity must provide
 the following endpoints:
 
 - [POST /tag](#post-tag)
-- [POST /token](#post-token)
 - [GET /tags](#get-tags)
-- [POST /registration\_key](#post-registration_key)
-- [POST /register](#post-register)
+
+In addition it must adhere fully to the User mode within the CPA
+specification.
 
 ### Authorization
-
-Authorization is based on OAuth 2.0. The central concepts here are
-**tokens** and **grants**.
 
 To store or retrieve anything at the tag service, a client needs a
 **token**. A valid token authorizes the client to perform a specific
@@ -221,13 +229,8 @@ a tag](#post-tag) or [get a list of tags](#get-tags) for either a
 [client](#client-identity) identity or [user](#user-identity)
 account identity.
 
-To obtain a token, the client must use the **grant** passed back from
-the server in a response header.
-
-A **token** is like a key. If you have it in your hand, you can open the
-door. A **grant** is like a chit giving you permission to request a key.
-In the RadioTAG protocol, you can't do anything with a grant except
-attempt to obtain the corresponding token.
+To obtain a token, the client must follow the process detailed within the
+CPA specification.
 
 ## Glossary
 
@@ -236,18 +239,18 @@ Term               Definition
 ---------------    --------------------------------------------------------------------
 Client             The device or user agent which interacts with the RadioTAG service
 
-Client identity    A RadioTAG identity associated only with a specific client and
+Client identity    An identity associated only with a specific client and
                    *not* with a user account
 
-User identity      A RadioTAG identity where a client has been associated with a user
+CPA                Cross Platform Authentication, an open stadnard proposed by the EBU
+                   to provide a secure framework for authentication on devices such as
+                   smart radio and televisions.
+
+User identity      An identity where a client has been associated with a user
                    account, and which can then be accessed from any client which has
                    been similarly associated
 
-Grant              Temporary permission to request a service
-
-Scope              What a grant applies to
-
-Auth Token         An authorization token which permits you to create a tag
+Token              An authorization token which permits you to create a tag
 
 Unix Time          The number of seconds elapsed since midnight Coordinated Universal
                    Time (UTC) on January 1, 1970, not counting leap seconds
@@ -280,35 +283,10 @@ Name                         Value
 ---------------------------  ---------------------------------------------------
 RadioTAG-Service-Provider    The display name of the tag service provider
 
-RadioTAG-Account-Name        The display name of the associated user account
-
-RadioTAG-Auth-Token          The authorization token for a client or user
-                             identity
-
 --------------------------------------------------------------------------------
 
 The `RadioTAG-Service-Provider` header should be returned in all
 responses.
-
-The `RadioTAG-Account-Name` should be returned in all responses to
-requests made by a client that is paired with a user account.
-
-The `RadioTAG-Auth-Token` header is returned when the client has been
-granted authorization. It also enables the tag service to issue a new
-token to replace an old one - see the next section.
-
-### Updating tokens
-
-The tag service can change the `RadioTAG-Auth-Token` in response to
-any authorized request (i.e. one which contains a valid Auth Token). The
-client should *always* use the last received Auth Token and update any
-stored value from that. This provides a way for a tag service to expire
-tokens.
-
-We recommend that tag service implementations allow a period of grace in
-which an expired token can co-exist with its replacement. This will
-address the case where the token was updated but the response was not
-received by the client.
 
 ### POST /tag
 
@@ -319,7 +297,7 @@ received by the client.
 --------------------------------------------------------------
 Name                   Value
 ---------------------  ---------------------------------------
-RadioTAG-Auth-Token    Empty OR client token OR user token
+Authorization          Not set OR client token OR user token
 
 --------------------------------------------------------------
 
@@ -348,7 +326,7 @@ HTTP Status Code  HTTP Status   Explanation
 201               Created       The service has stored the requested tag
 
 401               Unauthorized  Unidentified tagging is not supported and the token
-                                is blank or does not match either a client or
+                                is missing or does not match either a client or
                                 user identity
 
 --------------------------------------------------------------------------------
@@ -360,22 +338,7 @@ Name                         Value
 ---------------------------  --------------------------------------------------
 RadioTAG-Service-Provider    The display name of the tag service provider
 
-RadioTAG-Auth-Token          The token to use from now on.
-
-RadioTAG-Account-Name        The display name of the associated user account.
-
-RadioTAG-Grant-Scope         "client" or "identity". See [Authorization](#authorization).
-
-RadioTAG-Grant-Token         The token to use when exercising the grant.
-
 -------------------------------------------------------------------------------
-
-A grant header is *not* returned in the following cases:
-
-- the server supports only unidentified tagging
-- the client is already using a user identity token
-- the client is using a client identity token and the tag service doesn't
-  support user accounts
 
 ##### Body
 
@@ -392,7 +355,6 @@ explanation of why the request failed.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-RadioTAG-Auth-Token: ↵
 Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
@@ -405,10 +367,8 @@ station=0.c224.ce15.ce1.dab&time=1312301004
 ~~~~ {.example}
 HTTP/1.1 401 Unauthorized↵
 Date: Tue, 02 Aug 2011 16:03:24 GMT↵
-Status: 401 Unauthorized↵
+WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "client"↵
 RadioTAG-Service-Provider: BBC↵
-RadioTAG-Grant-Scope: client↵
-RadioTAG-Grant-Token: b86bfdfb-5ff5-4cc7-8c61-daaa4804f188↵
 Content-Type: text/html;charset=utf-8↵
 Content-Length: 18↵
 ↵
@@ -421,7 +381,7 @@ Must request token
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-RadioTAG-Auth-Token: be222d22-4cef-439e-a77c-c867441dcb33↵
+Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
@@ -434,10 +394,8 @@ station=0.c224.ce15.ce1.dab&time=1312301004
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Tue, 02 Aug 2011 16:03:25 GMT↵
-Status: 201 Created↵
+WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
 RadioTAG-Service-Provider: BBC↵
-RadioTAG-Grant-Scope: identity↵
-RadioTAG-Grant-Token: ddc7f510-9353-45ad-9202-746ffe3b663a↵
 Content-Type: application/xml;charset=utf-8↵
 Content-Length: 957↵
 ↵
@@ -469,9 +427,9 @@ Content-Length: 957↵
 </feed>
 ~~~~
 
-Note that the response header contains the `RadioTAG-Grant-Scope`
-`identity`. This will be present only if the service supports user
-tagging.
+Note that the response header contains the `WWW-Authenticate` header
+with a scope value of `user`. This will be present only if the service
+supports user tagging.
 
 #### Example 3 - `POST /tag` with a valid user token
 
@@ -479,7 +437,7 @@ tagging.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-RadioTAG-Auth-Token: b48bf7ed-14a6-429e-b5c8-35f7a4c094b7↵
+Authorization: Bearer kldhvkjxhoiqwyeh3khkj3↵
 Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
@@ -492,10 +450,7 @@ station=0.c224.ce15.ce1.dab&time=1312302129
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Tue, 02 Aug 2011 16:22:09 GMT↵
-Status: 201 Created↵
 RadioTAG-Service-Provider: BBC↵
-RadioTAG-Auth-Token: b48bf7ed-14a6-429e-b5c8-35f7a4c094b7↵
-RadioTAG-Account-Name: sean↵
 Content-Type: application/xml;charset=utf-8↵
 Content-Length: 958↵
 ↵
@@ -527,8 +482,8 @@ Content-Length: 958↵
 </feed>
 ~~~~
 
-Note that the response header does not contain any grants but does
-contain the paired user account name.
+Note that the response header does not contain any `WWW-Authenticate`
+headers but does contain the paired user account name.
 
 #### Example 4 - `POST /tag` against a service that does not provide client tagging
 
@@ -536,7 +491,6 @@ contain the paired user account name.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-RadioTAG-Auth-Token: ↵
 Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
@@ -549,10 +503,8 @@ station=0.c224.ce15.ce1.dab&time=1312195118
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Mon, 01 Aug 2011 10:38:38 GMT↵
-Status: 200 OK↵
+WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
 RadioTAG-Service-Provider: BBC↵
-RadioTAG-Grant-Scope: identity↵
-RadioTAG-Grant-Token: ddc7f510-9353-45ad-9202-746ffe3b663a↵
 Content-Type: application/xml;charset=utf-8↵
 Content-Length: 992↵
 ↵
@@ -590,7 +542,6 @@ Content-Length: 992↵
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-RadioTAG-Auth-Token: ↵
 Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
@@ -603,7 +554,6 @@ station=0.c224.ce15.ce1.dab&time=1312195118
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Mon, 01 Aug 2011 10:38:38 GMT↵
-Status: 200 OK↵
 RadioTAG-Service-Provider: BBC↵
 Content-Type: application/xml;charset=utf-8↵
 Content-Length: 992↵
@@ -636,84 +586,7 @@ Content-Length: 992↵
 </feed>
 ~~~~
 
-Note that no grant headers are issued.
-
-### POST /token
-
-#### Request
-
-##### Headers
-
-None.
-
-##### Parameters
-
---------------------------------------------------------------------------------
-Name          Value
-------------  ------------------------------------------------------------------
-grant\_scope  The value of the RadioTAG-Grant-Scope provided in the previous
-              request
-
-grant\_token  The value of the RadioTAG-Grant-Token provided in the previous
-              request
-
---------------------------------------------------------------------------------
-
-For more information, see [Authorization](#authorization).
-
-##### Example
-
-~~~~ {.example}
-POST /token HTTP/1.1↵
-Content-Length: 69↵
-Content-Type: application/x-www-form-urlencoded↵
-Host: radiotag.bbc.co.uk↵
-↵
-grant_scope=client&grant_token=b86bfdfb-5ff5-4cc7-8c61-daaa4804f188
-~~~~
-
-#### Response
-
-##### Status
-
---------------------------------------------------------------------------------
-HTTP Status Code  HTTP Status   Explanation
-----------------  ------------  ------------------------------------------------
-204               No Content    The token was successfully created
-
-401               Unauthorized  The grant is missing or invalid
-
-403               Forbidden     The grant is valid but the client is not allowed
-                                to make this request
-
---------------------------------------------------------------------------------
-
-##### Headers
-
--------------------------------------------------------------------------------
-Name                         Value
----------------------------  --------------------------------------------------
-RadioTAG-Service-Provider    The display name of the tag service provider
-
-RadioTAG-Auth-Token          The newly issued token to use for future requests.
-
--------------------------------------------------------------------------------
-
-##### Body
-
-The `/token` endpoint should not return any content (as denoted by the
-204 status code).
-
-##### Example
-
-~~~~ {.example}
-HTTP/1.1 204 No Content↵
-Date: Tue, 02 Aug 2011 16:22:08 GMT↵
-Status: 204 No Content↵
-RadioTAG-Service-Provider: BBC↵
-RadioTAG-Auth-Token: cf7ce9dc-7762-4b4c-970a-d194c5aa03ed↵
-↵
-~~~~
+Note that no `WWW-Authenticate` headers are issued.
 
 ### GET /tags
 
@@ -724,7 +597,7 @@ RadioTAG-Auth-Token: cf7ce9dc-7762-4b4c-970a-d194c5aa03ed↵
 -----------------------------------------------------
 Name                   Value
 ---------------------  ------------------------------
-RadioTAG-Auth-Token    client token OR user token
+Authorization          client token OR user token
 
 -----------------------------------------------------
 
@@ -755,7 +628,7 @@ specification](http://www.oclc.org/developer/platform/query-responses).
 
 ~~~~ {.example}
 GET /tags HTTP/1.1↵
-RadioTAG-Auth-Token: cf7ce9dc-7762-4b4c-970a-d194c5aa03ed↵
+Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Host: radiotag.bbc.co.uk↵
 ↵
 ~~~~
@@ -779,17 +652,7 @@ HTTP Status Code  HTTP Status   Explanation
 --------------------------------------------------------------------------------
 Name                         Value
 ---------------------------  ---------------------------------------------------
-RadioTAG-Account-Name        The display name of the associated user account
-                             (if applicable)
-
 RadioTAG-Service-Provider    The display name of the tag service provider
-
-RadioTAG-Grant-Scope         If the service provides pairing to a user
-                             account, this will have the value `identity`.
-                             See [Authorization](#authorization)
-
-RadioTAG-Grant-Token         The token to use when exercising the `identity`
-                             grant
 
 --------------------------------------------------------------------------------
 
@@ -800,10 +663,8 @@ RadioTAG-Grant-Token         The token to use when exercising the `identity`
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Tue, 02 Aug 2011 16:22:08 GMT↵
-Status: 200 OK↵
+WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
 RadioTAG-Service-Provider: BBC↵
-RadioTAG-Grant-Scope: identity↵
-RadioTAG-Grant-Token: ddc7f510-9353-45ad-9202-746ffe3b663a↵
 Content-Type: application/xml;charset=utf-8↵
 Content-Length: 974↵
 ↵
@@ -833,162 +694,6 @@ Content-Length: 974↵
     <summary>Eddie Mair presents the day's top stories.</summary>
   </entry>
 </feed>
-~~~~
-
-### POST /registration\_key
-
-#### Request
-
-##### Headers
-
--------------------------------------------------------------
-Name                   Value
----------------------  --------------------------------------
-RadioTAG-Auth-Token    Either blank or a valid client token
-
--------------------------------------------------------------
-
-##### Parameters
-
---------------------------------------------------------------------
-Name          Value
-------------  ------------------------------------------------------
-grant\_scope  Must be the value `identity`
-
-grant\_token  Must be the grant token issued in the previous request
-
---------------------------------------------------------------------
-
-##### Example
-
-~~~~ {.example}
-POST /registration_key HTTP/1.1↵
-Content-Length: 73↵
-Content-Type: application/x-www-form-urlencoded↵
-Host: radiotag.bbc.co.uk↵
-↵
-grant_scope=identity&grant_token=ddc7f510-9353-45ad-9202-746ffe3b663a
-~~~~
-
-#### Response
-
-##### Status
-
---------------------------------------------------------------------------------
-HTTP Status Code  HTTP Status  Explanation
-----------------  -----------  -------------------------------------------------
-204               No Content   The request was successful. The response headers
-                               contain the
-                               registration key required to pair the radio.
-
---------------------------------------------------------------------------------
-
-##### Headers
-
---------------------------------------------------------------------------------
-Name                         Value
----------------------------  ---------------------------------------------------
-RadioTAG-Service-Provider    The display name of the tag service provider
-
-RadioTAG-Registration-Key    The registration key to use when pairing the
-                             device.
-
-RadioTAG-Registration-Url    The url to visit to register the device.
-
---------------------------------------------------------------------------------
-
-##### Body
-
-This response contains no body.
-
-##### Example
-
-~~~~ {.example}
-HTTP/1.1 204 No Content↵
-Date: Tue, 02 Aug 2011 16:22:09 GMT↵
-Status: 204 No Content↵
-RadioTAG-Service-Provider: BBC↵
-RadioTAG-Registration-Key: 2b188492↵
-RadioTAG-Registration-Url: http://radiotag.example.com/↵
-↵
-~~~~
-
-### POST /register
-
-#### Request
-
-##### Headers
-
------------------------------------------------------
-Name                   Value
----------------------  ------------------------------
-RadioTAG-Auth-Token    Client OR user token
-
------------------------------------------------------
-
-##### Parameters
-
---------------------------------------------------------------------------------
-Name               Value
------------------  -------------------------------------------------------------
-registration\_key  The registration key returned from the `/registration_key`
-                   request
-
-pin                The PIN issued to the user (e.g. at a web front end).
-
---------------------------------------------------------------------------------
-
-##### Example
-
-~~~~ {.example}
-POST /register HTTP/1.1↵
-RadioTAG-Auth-Token: cf7ce9dc-7762-4b4c-970a-d194c5aa03ed↵
-Content-Length: 34↵
-Content-Type: application/x-www-form-urlencoded↵
-Host: radiotag.bbc.co.uk↵
-↵
-registration_key=2b188492&pin=3612
-~~~~
-
-#### Response
-
-##### Status
-
---------------------------------------------------------------------------------
-HTTP Status Code  HTTP Status  Explanation
-----------------  -----------  -------------------------------------------------
-204               No Content   The registration has succeeded and the client
-                               has been paired to the associated user account
-
---------------------------------------------------------------------------------
-
-##### Headers
-
-------------------------------------------------------------------------------
-Name                         Value
----------------------------  -------------------------------------------------
-RadioTAG-Service-Provider    The display name of the tag service provider
-
-RadioTAG-Auth-Token          The token to use for future requests
-
-RadioTAG-Account-Name        The display name of the associated user account
-
-------------------------------------------------------------------------------
-
-##### Body
-
-There is no body returned in this response.
-
-##### Example
-
-~~~~ {.example}
-HTTP/1.1 201 Created↵
-Date: Tue, 02 Aug 2011 16:22:09 GMT↵
-Status: 204 No Content↵
-RadioTAG-Service-Provider: BBC↵
-RadioTAG-Auth-Token: b48bf7ed-14a6-429e-b5c8-35f7a4c094b7↵
-RadioTAG-Account-Name: sean↵
-↵
 ~~~~
 
 ## Data formats
@@ -1173,18 +878,6 @@ url               255                 See [RFC 2616 Section
 -----------------------------------------------
 Headers                      Max. size in bytes
 ---------------------------  ------------------
-RadioTAG-Account-Name        48
-
-RadioTAG-Auth-Token          48
-
-RadioTAG-Grant-Scope         16
-
-RadioTAG-Grant-Token         48
-
-RadioTAG-Registration-Key    10
-
-RadioTAG-Registration-Url    128
-
 RadioTAG-Service-Provider    16
 
 -----------------------------------------------
@@ -1218,14 +911,13 @@ identifier (using the broadcast parameter string used in constructing a
 RadioDNS FQDN), and a `time`. Unix Time is used for the `time`
 parameter.
 
-As this client has no Auth Token, the `Radiotag-Auth-Token` header is
-blank. It could also simply not be there at all. The following sequence
-of events is also triggered when the request contains an invalid
+As this client has no Auth Token, the `Authorization` header is blank.
+It could also simply not be there at all. The following sequence of
+events is also triggered when the request contains an invalid
 authentication token.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-RadioTAG-Auth-Token: ↵
 Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
@@ -1235,72 +927,111 @@ station=0.c224.ce15.ce1.dab&time=1319201989
 
 ##### Response
 
-To mitigate the possibility of resource depletion attacks, when the
-server supports client tagging we introduce a two-step process to
-obtain a token before being allowed to tag. The first step involves
-obtaining a **grant**. A grant is temporary permission to make a
-specific request.
-
 When a tag service supports client tagging, it responds to an
 unauthenticated `/tag` request by returning a `401 Unauthorized`
-response containing a grant that allows the device to request an
-authentication token. This grant consists of two parts: a **scope**
-which indicates that the server supports client tagging, and a
-**token** which is used in the subsequent request to `/token`.
+response containing a `WWW-Authenticate` header that advertises the
+ability to elevate identity level.
 
-A general principle is that a grant is only guaranteed to be valid on
-the next request, so should not be stored permanently.
+This header consists of two parts: a **realm** a plain text string
+suitable for display in a client UI to indicate an authentication
+attempt and a **scope** which is used to inform the client which
+method of the CPA specification should be attempted.
+
+The body contains the JSON object specified in the CPA to inform
+the client of the location of the Authorization Provider (AP).
 
 ~~~~ {.example}
 HTTP/1.1 401 Unauthorized↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-Status: 401 Unauthorized↵
+WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "client"↵
 RadioTAG-Service-Provider: BBC↵
-RadioTAG-Grant-Scope: client↵
-RadioTAG-Grant-Token: b86bfdfb-5ff5-4cc7-8c61-daaa4804f188↵
 Content-Type: text/html;charset=utf-8↵
 Content-Length: 18↵
 ↵
-Must request token
+{
+  "error": "unauthorized",
+  "authorization_uri": "https://ap.bbc.co.uk/authorized",
+  "service_provider_id": "1"
+}
 ~~~~
 
 ##### Request
 
-The client POSTs the grant to the `/token` endpoint to request a token
-to create tags.
+As per the CPA specification, the client begins a client level
+registration.
+
+Because it has no client identifiers, it must first request these.
 
 ~~~~ {.example}
-POST /token HTTP/1.1↵
-Content-Length: 69↵
-Content-Type: application/x-www-form-urlencoded↵
-Host: radiotag.bbc.co.uk↵
+POST /register HTTP/1.1↵
+Content-Length: ↵
+Content-Type: application/json↵
+Host: ap.bbc.co.uk↵
 ↵
-grant_scope=client&grant_token=b86bfdfb-5ff5-4cc7-8c61-daaa4804f188
+{
+  "client_name": "Revo Axis",
+  "software_id": "ir-svn",
+  "software_version": "1.0.0#100443"
+}
 ~~~~
 
 ##### Response
 
-The authentication token is returned to the client in the headers of a
-`204 No Content` response.
+The client credentials are returned in a JSON response.
 
 ~~~~ {.example}
-HTTP/1.1 204 No Content↵
+HTTP/1.1 201 Created↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-Status: 204 No Content↵
-RadioTAG-Service-Provider: BBC↵
-RadioTAG-Auth-Token: e2300af3-bad6-45f8-ba38-6bcb025ca210↵
+Content-Length: 201↵
 ↵
+{
+  "client_id": "1234",
+  "client_secret": "sdalfqealskdfnk13984r2n23klndvs",
+  "registration_access_token": "askdjfnweiorj134n9gjnr23",
+  "registration_client_uri": "http://ap.example.com/register"
+}
 ~~~~
 
 ##### Request
 
-Now the client has successfully exchanged a grant for a token, the tag
-request can be made again, this time passing the authentication token in
-a header of a POST request to `/tag`.
+Now that an identifier and secret have been obtained for the client,
+these can be exchanged for a client token.
+
+~~~~ {.example}
+POST /token HTTP/1.1↵
+Content-Length: 58↵
+Content-type: application/x-www-form-urlencoded↵
+Host: ap.bbc.co.uk↵
+↵
+grant_type=authorization_code&client_id=1234&client_secret
+~~~~
+
+##### Response
+
+The token is returned in a JSON response object.
+
+~~~~ {.example}
+HTTP/1.1 200 OK
+Date: Fri, 21 Oct 2011 12:59:49 GMT↵
+Content-type: application/json
+Cache-control: no-store
+Pragma: no-cache
+
+{
+  "token": "alsdkfmasdfn1j23nsfjn1",
+  "token_type": "bearer"
+}
+~~~~
+
+##### Request
+
+Now the client has successfully exchanged its credentials for a token,
+the tag request can be made again, this time passing the token in a header
+of a POST request to `/tag`.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-RadioTAG-Auth-Token: e2300af3-bad6-45f8-ba38-6bcb025ca210↵
+Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
@@ -1310,9 +1041,9 @@ station=0.c224.ce15.ce1.dab&time=1319201989
 
 ##### Response
 
-The server verifies the request by checking the token against those that
-it has issued, and if valid creates a tag. The metadata corresponding to
-this tag is returned in the body of a `201 Created` response, in the
+The server verifies the request by checking the token against it's nominated
+authorization provider, and if valid creates a tag. The metadata corresponding
+to this tag is returned in the body of a `201 Created` response, in the
 form of an [Atom](http://tools.ietf.org/html/rfc4287) document. See
 [Data formats](#data-formats) for more details.
 
@@ -1322,10 +1053,8 @@ programme is shown below:
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-Status: 201 Created↵
+WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
 RadioTAG-Service-Provider: BBC↵
-RadioTAG-Grant-Scope: identity↵
-RadioTAG-Grant-Token: ddc7f510-9353-45ad-9202-746ffe3b663a↵
 Content-Type: application/xml;charset=utf-8↵
 Content-Length: 1032↵
 ↵
@@ -1360,26 +1089,25 @@ Content-Length: 1032↵
 #### Press OK
 
 In the previous, successful `/tag` request, the server's response
-contained a `identity` grant. The presence of this grant indicates
-to the client that the server supports the pairing a client with a user
-account. At this stage the client can present to the user the option to
-register with the server, or to accept the information in the current
-tag and return to the default state for the station.
+contained an invitation to authenticate at a user level. The presence of
+this header indicates to the client that the server supports the pairing a
+client with a user account. At this stage the client can present to the
+user the option to register with the server, or to accept the information
+in the current tag and return to the default state for the station.
 
 In this case, we chose the latter by pressing `OK`.
 
 #### Press Tags
 
 As the server supports client tagging the tags created so far have
-been stored on the server against the authentication token, which stands
-in for a client id. The client can request a list of tags by making a
-GET request to `/tags` with the authentication token in the header:
+been stored on the server against the token. The client can request a list
+of tags by making a GET request to `/tags` with the token in the header:
 
 ##### Request
 
 ~~~~ {.example}
 GET /tags HTTP/1.1↵
-RadioTAG-Auth-Token: e2300af3-bad6-45f8-ba38-6bcb025ca210↵
+Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Host: radiotag.bbc.co.uk↵
 ↵
 ~~~~
@@ -1392,10 +1120,8 @@ for this device.
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-Status: 200 OK↵
 RadioTAG-Service-Provider: BBC↵
-RadioTAG-Grant-Scope: identity↵
-RadioTAG-Grant-Token: ddc7f510-9353-45ad-9202-746ffe3b663a↵
+WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
 Content-Type: application/xml;charset=utf-8↵
 Content-Length: 1042↵
 ↵
@@ -1437,7 +1163,7 @@ the `Tag` button as before.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-RadioTAG-Auth-Token: e2300af3-bad6-45f8-ba38-6bcb025ca210↵
+Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
@@ -1448,18 +1174,16 @@ station=0.c224.ce15.ce1.dab&time=1319201989
 ##### Response
 
 The response in this case is a `201 Created`, since the service supports
-client tagging and the client has passed in the authentication token
-with the request to `/tag`. Again the response contains a `identity`
-grant. The client uses the presence of this grant to decide to display
-the option to register.
+client tagging and the client has passed in the token with the request to 
+`/tag`. Again the response contains a `WWW-Authenticate` advertisement. The
+client uses the presence of this header to decide to display the option to
+register.
 
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-Status: 201 Created↵
 RadioTAG-Service-Provider: BBC↵
-RadioTAG-Grant-Scope: identity↵
-RadioTAG-Grant-Token: ddc7f510-9353-45ad-9202-746ffe3b663a↵
+WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
 Content-Type: application/xml;charset=utf-8↵
 Content-Length: 1032↵
 ↵
@@ -1494,109 +1218,111 @@ Content-Length: 1032↵
 #### Press Register
 
 This time the user selects the option to register on the client. The
-client requires an identifier to identify itself to the server during
-the registration process. It requests this from the tag service by
-making a POST request to the `/registration_key` endpoint, sending back
-the `grant_scope` and `grant_token` from the previous response.
+client needs to follow the steps for obtaining a user access token
+detailed in the CPA specification, namely repeating the token step
+but this time with a request for a device code.
 
 ##### Request
 
 ~~~~ {.example}
-POST /registration_key HTTP/1.1↵
-Content-Length: 73↵
+POST /token HTTP/1.1↵
+Content-Length: 40↵
 Content-Type: application/x-www-form-urlencoded↵
-Host: radiotag.bbc.co.uk↵
+Host: ap.bbc.co.uk↵
 ↵
-grant_scope=identity&grant_token=ddc7f510-9353-45ad-9202-746ffe3b663a
+response_type=device_code&client_id=1234
 ~~~~
 
 ##### Response
 
-The service responds with a registration key in the header, and the
-location of a web site where the user can complete the registration
-process.
+The service responds with a user code and the location of a web
+site where the user can complete the registration process.
 
 ~~~~ {.example}
-HTTP/1.1 204 No Content↵
+HTTP/1.1 200 OK↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-Status: 204 No Content↵
-RadioTAG-Service-Provider: BBC↵
-RadioTAG-Registration-Key: 399eaa7c↵
-RadioTAG-Registration-Url: http://radiotag.bbc.co.uk/↵
+Content-Type: application/json↵
 ↵
+{↵
+  "device_code": "jkndsfai1324j0fasdkffdsoijgqwer",↵
+  "user_code": "Abf13",↵
+  "verification_uri": "https://ap.example.com/verify"↵
+}
 ~~~~
 
 #### Register with a web front end
 
 Registering with a web front end and obtaining the authenticating PIN
-number is outside the scope of RadioTAG, so is not specified here.
+number is outside the scope of both RadioTAG and the CPA specification,
+so is not specified here.
 
 The following is a sketch of how this part of the system might be
 implemented:
 
-> The desired outcome of registering is that the registration key is
-> associated with a user's account and a PIN returned to the user. The
-> combination of registration key (which is already known to the client)
-> and the PIN will be used to request an authenticated token in the
-> `/register` step below. The tag service needs then to be able to map
-> that token to the corresponding user account.
->
-> A typical scenario would be that the user visits the broadcaster's web
-> front end, authenticates by some means with the provider of the
-> tagging service (using their user name and password, for example), and
-> submits the registration key obtained in the previous step using a
-> form.
+> A typical scenario would be that the user visits the AP's web front
+> end, authenticates by some means with the provider (using their user
+> name and password, for example), and submits the user code obtained
+> in the previous step using a form.
 >
 > This causes a request to be made to the service which has previously
-> stored the registration key that was issued to the client in the
-> previous step. The service then checks the authenticity and, if valid,
-> issues a PIN number, which is then displayed to the user.
->
-> At the backend, the registration key and PIN are stored against the
-> user account so that when the `/register` request is made, they can be
-> validated and exchanged for a token.
+> stored the user code that was issued to the client in the previous
+> step. The service then checks the authenticity and, if valid,
+> links the associated client id with user.
 
-#### Enter the PIN
+#### Polling to validate registration
 
-The user enters the PIN number obtained in the previous step into their
-client, which then makes a POST request to `/register` with the
-registration key and PIN in the body of the request.
-
-Note that the previously issued authentication token for client
-tagging is included in the header of the request. This allows the server
-to migrate tags from an unpaired client to the user's account.
+Whilst the user is completing the web front end steps, the client can
+begin to poll the AP to see if they have been paired.
 
 ##### Request
 
 ~~~~ {.example}
-POST /register HTTP/1.1↵
-RadioTAG-Auth-Token: e2300af3-bad6-45f8-ba38-6bcb025ca210↵
-Content-Length: 34↵
+POST /token HTTP/1.1↵
+Content-Length: 81↵
 Content-Type: application/x-www-form-urlencoded↵
-Host: radiotag.bbc.co.uk↵
+Host: ap.bbc.co.uk↵
 ↵
-registration_key=399eaa7c&pin=7535
+grant_type=authorization_code&client_id=1234&code=jkndsfai1324j0fasdkffdsoijgqwer
 ~~~~
 
-##### Response
+##### Intermediate Response
 
-The server checks the credentials and returns `204 No Content` to
-indicate that a new token has been created. The response headers contain
-the new authentication token (`RadioTAG-Auth-Token`), which is to be
-used for future tagging requests that wish to be associated with this
-user account. Also in the headers is the user account name
-(`RadioTAG-Account-Name`). This account name can be used by the client
-to provide a reminder or prompt to the user in case they are unsure of
-the account they used to register the client.
+Whilst the user is still in the process of registering with the web
+front end, the response to this request will indicate a pending state
+and advise the client on how soon it should return to ask again.
+
+The same request is repeated each time.
 
 ~~~~ {.example}
-HTTP/1.1 204 No Content↵
-Date: Fri, 21 Oct 2011 12:59:50 GMT↵
-Status: 204 No Content↵
-RadioTAG-Service-Provider: BBC↵
-RadioTAG-Auth-Token: d7975fbd-343a-474f-9dc4-05752c83cea1↵
-RadioTAG-Account-Name: sean↵
-↵
+HTTP/1.1 200 OK↵
+Date: Fri, 21 Oct 2011 12:59:49 GMT↵
+Content-type: application/json↵
+Cache-control: no-store↵
+Pragma: no-cache↵
+
+{
+???
+}
+~~~~
+
+#### Final Response
+
+When the user has completed the necessary steps on the web front end
+and the client is now paired with a user, the AP can return an
+appropriate response to the client, which includes a new token that
+should replace the previously stored token.
+
+~~~~ {.example}
+HTTP/1.1 200 OK↵
+Date: Fri, 21 Oct 2011 12:59:49 GMT↵
+Content-type: application/json↵
+Cache-control: no-store↵
+Pragma: no-cache↵
+
+{
+  "token": "alsdkfmasdfn1j23nsfjn1",
+  "token_type": "bearer"
+}
 ~~~~
 
 #### Press Tag
@@ -1610,7 +1336,7 @@ stored against the user's account.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-RadioTAG-Auth-Token: d7975fbd-343a-474f-9dc4-05752c83cea1↵
+Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
@@ -1623,10 +1349,7 @@ station=0.c224.ce15.ce1.dab&time=1319201990
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Fri, 21 Oct 2011 12:59:50 GMT↵
-Status: 201 Created↵
 RadioTAG-Service-Provider: BBC↵
-RadioTAG-Auth-Token: d7975fbd-343a-474f-9dc4-05752c83cea1↵
-RadioTAG-Account-Name: sean↵
 Content-Type: application/xml;charset=utf-8↵
 Content-Length: 1032↵
 ↵
@@ -1669,7 +1392,7 @@ above are returned in the Atom feed.
 
 ~~~~ {.example}
 GET /tags HTTP/1.1↵
-RadioTAG-Auth-Token: d7975fbd-343a-474f-9dc4-05752c83cea1↵
+Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Host: radiotag.bbc.co.uk↵
 ↵
 ~~~~
@@ -1679,10 +1402,7 @@ Host: radiotag.bbc.co.uk↵
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Fri, 21 Oct 2011 12:59:50 GMT↵
-Status: 200 OK↵
 RadioTAG-Service-Provider: BBC↵
-RadioTAG-Auth-Token: d7975fbd-343a-474f-9dc4-05752c83cea1↵
-RadioTAG-Account-Name: sean↵
 Content-Type: application/xml;charset=utf-8↵
 Content-Length: 2268↵
 ↵
@@ -1758,12 +1478,11 @@ same as in the client case above.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-RadioTAG-Auth-Token: ↵
 Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
 ↵
-station=0.c224.ce15.ce1.dab&time=1319202059
+station=0.c224.ce15.ce1.dab&time=1319201989
 ~~~~
 
 ##### Response
@@ -1773,16 +1492,14 @@ should remember this result for later as it indicates that the client
 should resubmit the tag request after registration.
 
 Note that just like the client case, the response contains a
-`identity` grant. The client can use this to provide the choice to
-accept the result or to register the client.
+`WWW-Authenticate` header. The client can use this to provide the choice
+to accept the result or elevate the client to a user identity level.
 
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Fri, 21 Oct 2011 13:00:59 GMT↵
-Status: 200 OK↵
+WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
 RadioTAG-Service-Provider: BBC↵
-RadioTAG-Grant-Scope: identity↵
-RadioTAG-Grant-Token: ddc7f510-9353-45ad-9202-746ffe3b663a↵
 Content-Type: application/xml;charset=utf-8↵
 Content-Length: 973↵
 ↵
@@ -1824,7 +1541,6 @@ At this point, the client can forget the stored `200 OK` result code.
 
 ~~~~ {.example}
 GET /tags HTTP/1.1↵
-RadioTAG-Auth-Token: ↵
 Host: radiotag.bbc.co.uk↵
 ↵
 ~~~~
@@ -1837,7 +1553,7 @@ stored on the server.
 ~~~~ {.example}
 HTTP/1.1 401 Unauthorized↵
 Date: Fri, 21 Oct 2011 13:00:59 GMT↵
-Status: 401 Unauthorized↵
+WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
 RadioTAG-Service-Provider: BBC↵
 Content-Type: text/html;charset=utf-8↵
 Content-Length: 12↵
@@ -1851,7 +1567,6 @@ Unauthorized
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-RadioTAG-Auth-Token: ↵
 Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
@@ -1867,10 +1582,8 @@ request is 200.
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Fri, 21 Oct 2011 13:01:00 GMT↵
-Status: 200 OK↵
+WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
 RadioTAG-Service-Provider: BBC↵
-RadioTAG-Grant-Scope: identity↵
-RadioTAG-Grant-Token: ddc7f510-9353-45ad-9202-746ffe3b663a↵
 Content-Type: application/xml;charset=utf-8↵
 Content-Length: 973↵
 ↵
@@ -1904,78 +1617,52 @@ Content-Length: 973↵
 
 #### Press Register
 
+[TODO] Steps to get client credentials
+
 ##### Request
 
 ~~~~ {.example}
-POST /registration_key HTTP/1.1↵
-Content-Length: 73↵
+POST /token HTTP/1.1↵
+Content-Length: 40↵
 Content-Type: application/x-www-form-urlencoded↵
-Host: radiotag.bbc.co.uk↵
+Host: ap.bbc.co.uk↵
 ↵
-grant_scope=identity&grant_token=ddc7f510-9353-45ad-9202-746ffe3b663a
+response_type=device_code&client_id=1234
 ~~~~
 
 ##### Response
 
 ~~~~ {.example}
-HTTP/1.1 204 No Content↵
-Date: Fri, 21 Oct 2011 13:01:00 GMT↵
-Status: 204 No Content↵
-RadioTAG-Service-Provider: BBC↵
-RadioTAG-Registration-Key: 4fa9ed43↵
-RadioTAG-Registration-Url: http://radiotag.bbc.co.uk/↵
+HTTP/1.1 200 OK↵
+Date: Fri, 21 Oct 2011 12:59:49 GMT↵
+Content-Type: application/json↵
 ↵
+{↵
+  "device_code": "jkndsfai1324j0fasdkffdsoijgqwer",↵
+  "user_code": "Abf13",↵
+  "verification_uri": "https://ap.example.com/verify"↵
+}
 ~~~~
 
-#### Register with the web front end to get a PIN
+#### Register with the web front end
 
 Registering with a web front end is outside the scope of the RadioTAG
 specification. See the note on [registering with a web front
 end](#register-with-a-web-front-end) above for one possible
 implementation.
 
-#### Enter PIN
-
-##### Request
-
-Note that unlike the client case, there is no auth token to send.
-
-~~~~ {.example}
-POST /register HTTP/1.1↵
-RadioTAG-Auth-Token: ↵
-Content-Length: 34↵
-Content-Type: application/x-www-form-urlencoded↵
-Host: radiotag.bbc.co.uk↵
-↵
-registration_key=4fa9ed43&pin=9666
-~~~~
-
-##### Response
-
-The client has now completed the pairing process so receives an
-`RadioTAG-Auth-Token` header which it should include as a request
-header in all future requests.
-
-~~~~ {.example}
-HTTP/1.1 204 No Content↵
-Date: Fri, 21 Oct 2011 13:01:00 GMT↵
-Status: 204 No Content↵
-RadioTAG-Service-Provider: BBC↵
-RadioTAG-Auth-Token: 0f73d1b8-e6b5-451e-9ecf-1a3c33c76415↵
-RadioTAG-Account-Name: sean↵
-↵
-~~~~
+[TODO] Register/polling steps
 
 ##### Request
 
 The client should have stored the result of the previous request to
 `/tag`. As it was a `200 OK` rather than `201 Created`, the client knows
 it should resubmit the tag request, this time including the newly
-acquired `RadioTAG-Auth-Token` in the request header:
+acquired `Authorization` header token value:
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-RadioTAG-Auth-Token: 0f73d1b8-e6b5-451e-9ecf-1a3c33c76415↵
+Authorization: ???↵
 Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
@@ -1992,10 +1679,7 @@ device and via the web.
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Fri, 21 Oct 2011 13:01:00 GMT↵
-Status: 201 Created↵
 RadioTAG-Service-Provider: BBC↵
-RadioTAG-Auth-Token: 0f73d1b8-e6b5-451e-9ecf-1a3c33c76415↵
-RadioTAG-Account-Name: sean↵
 Content-Type: application/xml;charset=utf-8↵
 Content-Length: 973↵
 ↵
