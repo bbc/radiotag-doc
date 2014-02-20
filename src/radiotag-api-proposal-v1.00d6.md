@@ -372,7 +372,7 @@ RadioTAG-Service-Provider: BBC↵
 Content-Type: text/html;charset=utf-8↵
 Content-Length: 18↵
 ↵
-Must request token
+Must request client token
 ~~~~
 
 #### Example 2 - `POST /tag` with a valid client token
@@ -946,13 +946,8 @@ Date: Fri, 21 Oct 2011 12:59:49 GMT↵
 WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "client"↵
 RadioTAG-Service-Provider: BBC↵
 Content-Type: text/html;charset=utf-8↵
-Content-Length: 18↵
 ↵
-{
-  "error": "unauthorized",
-  "authorization_uri": "https://ap.bbc.co.uk/authorized",
-  "service_provider_id": "1"
-}
+Must request client token
 ~~~~
 
 ##### Request
@@ -964,7 +959,6 @@ Because it has no client identifiers, it must first request these.
 
 ~~~~ {.example}
 POST /register HTTP/1.1↵
-Content-Length: ↵
 Content-Type: application/json↵
 Host: ap.bbc.co.uk↵
 ↵
@@ -982,7 +976,6 @@ The client credentials are returned in a JSON response.
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-Content-Length: 201↵
 ↵
 {
   "client_id": "1234",
@@ -999,11 +992,14 @@ these can be exchanged for a client token.
 
 ~~~~ {.example}
 POST /token HTTP/1.1↵
-Content-Length: 58↵
 Content-type: application/x-www-form-urlencoded↵
 Host: ap.bbc.co.uk↵
 ↵
-grant_type=authorization_code&client_id=1234&client_secret
+{
+  "grant_type": "authorization_code",
+  "client_id": "1234",
+  "client_secret": "sdalfqealskdfnk13984r2n23klndvs"
+}
 ~~~~
 
 ##### Response
@@ -1225,12 +1221,15 @@ but this time with a request for a device code.
 ##### Request
 
 ~~~~ {.example}
-POST /token HTTP/1.1↵
-Content-Length: 40↵
+POST /associate HTTP/1.1↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: ap.bbc.co.uk↵
 ↵
-response_type=device_code&client_id=1234
+{
+  "client_id": "1234",
+  "client_secret": "sdalfqealskdfnk13984r2n23klndvs",
+  "scope": "sp.example.com"
+}
 ~~~~
 
 ##### Response
@@ -1242,6 +1241,8 @@ site where the user can complete the registration process.
 HTTP/1.1 200 OK↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
 Content-Type: application/json↵
+Cache-Control: no-store↵
+Pragma: no-cache↵
 ↵
 {↵
   "device_code": "jkndsfai1324j0fasdkffdsoijgqwer",↵
@@ -1278,11 +1279,14 @@ begin to poll the AP to see if they have been paired.
 
 ~~~~ {.example}
 POST /token HTTP/1.1↵
-Content-Length: 81↵
-Content-Type: application/x-www-form-urlencoded↵
 Host: ap.bbc.co.uk↵
+Content-type: application/json↵
 ↵
-grant_type=authorization_code&client_id=1234&code=jkndsfai1324j0fasdkffdsoijgqwer
+{
+  "grant_type": "authorization_code",
+  "client_id": "1234",
+  "device_code": "jkndsfai1324j0fasdkffdsoijgqwer"
+}
 ~~~~
 
 ##### Intermediate Response
@@ -1301,9 +1305,10 @@ Cache-control: no-store↵
 Pragma: no-cache↵
 
 {
-???
 }
 ~~~~
+
+[TODO] Body is currently undefined in CPA draft
 
 #### Final Response
 
@@ -1320,8 +1325,10 @@ Cache-control: no-store↵
 Pragma: no-cache↵
 
 {
+  "user_display_name": "Alice",
   "token": "alsdkfmasdfn1j23nsfjn1",
-  "token_type": "bearer"
+  "token_type": "bearer",
+  "scope": "sp.example.com"
 }
 ~~~~
 
@@ -1556,9 +1563,8 @@ Date: Fri, 21 Oct 2011 13:00:59 GMT↵
 WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
 RadioTAG-Service-Provider: BBC↵
 Content-Type: text/html;charset=utf-8↵
-Content-Length: 12↵
 ↵
-Unauthorized
+Must request user token
 ~~~~
 
 #### Press Tag
@@ -1617,25 +1623,64 @@ Content-Length: 973↵
 
 #### Press Register
 
-[TODO] Steps to get client credentials
+##### Request
+
+As per the CPA specification, the client begins a client level
+registration.
+
+Because it has no client identifiers, it must first request these.
+
+~~~~ {.example}
+POST /register HTTP/1.1↵
+Content-Type: application/json↵
+Host: ap.bbc.co.uk↵
+↵
+{
+  "client_name": "Revo Axis",
+  "software_id": "ir-svn",
+  "software_version": "1.0.0#100443"
+}
+~~~~
+
+##### Response
+
+The client credentials are returned in a JSON response.
+
+~~~~ {.example}
+HTTP/1.1 201 Created↵
+Date: Fri, 21 Oct 2011 12:59:49 GMT↵
+↵
+{
+  "client_id": "1234",
+  "client_secret": "sdalfqealskdfnk13984r2n23klndvs",
+  "registration_access_token": "askdjfnweiorj134n9gjnr23",
+  "registration_client_uri": "http://ap.example.com/register"
+}
+~~~~
 
 ##### Request
 
+Now that an identifier and secret have been obtained for the client,
+the client can begin user mode association.
+
 ~~~~ {.example}
-POST /token HTTP/1.1↵
-Content-Length: 40↵
-Content-Type: application/x-www-form-urlencoded↵
-Host: ap.bbc.co.uk↵
+POST /associate HTTP/1.1↵
+Content-type: application/json↵
 ↵
-response_type=device_code&client_id=1234
+{↵
+  "client_id": "1234",↵
+  "client_secret": "sdalfqealskdfnk13984r2n23klndvs",↵
+  "scope": "sp.example.com"↵
+}
 ~~~~
 
 ##### Response
 
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
-Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-Content-Type: application/json↵
+Content-type: application/json↵
+Cache-Control: no-store↵
+Pragma: no-cache↵
 ↵
 {↵
   "device_code": "jkndsfai1324j0fasdkffdsoijgqwer",↵
@@ -1651,7 +1696,19 @@ specification. See the note on [registering with a web front
 end](#register-with-a-web-front-end) above for one possible
 implementation.
 
-[TODO] Register/polling steps
+#### Poll for token
+
+Whilst the user is dealing with the web front end, the client should
+poll for a token which will return in the event of the user completing
+the necessary steps on the web front end.
+
+##### Request
+
+x
+
+##### Response
+
+y
 
 ##### Request
 
