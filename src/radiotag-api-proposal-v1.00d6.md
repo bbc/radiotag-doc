@@ -43,8 +43,9 @@ discovers whether a broadcaster supports RadioTAG and if so how it then
 communicates with a broadcaster-provided web service to record the time
 and station being listened to.
 
-The protocol defines how a client obtains authorization to store
-data on the server and how it can become paired with a user account so
+The protocol defines how the Cross Platform Authentication (CPA) protocol is
+implemented within this protocol, to allow the client to obtain authorization to
+store data on the server and how it can become paired with a user account so
 that data can be accessed via the web.
 
 The protocol also defines the format and content of the requests and
@@ -115,11 +116,10 @@ depending on the level of service it provides.
 
 ### Authentication
 
-This proposal does not directly provide an authentication solution.
-The tag application should be secured using the processes detailed in
-the EBU's Cross Platform Authentication (CPA) specification. This
-specification simply aims to highlight the important components and
-the direct impact they have on the implementation of tagging.
+This proposal does not directly provide an authentication solution. The tag
+application should be secured using the processes detailed in the CPA
+specification. This specification simply aims to highlight the important
+components and the direct impact they have on the implementation of tagging.
 
 ### Levels of identity
 
@@ -180,9 +180,9 @@ client. The protocol enables the client to become authorized to
 store tags on the server without being associated with an
 authenticated user account.
 
-To indicate that it supports client identity, the server must issue
-a `WWW-Authenticate` response-header to an unauthorized request
-to `POST /tag`. It must provide the following endpoints:
+To indicate that it supports client identity, the server must issue a
+`WWW-Authenticate` response-header with a `client` scope to an unauthorized
+request to `POST /tag`. It must provide the following endpoints:
 
 - [POST /tag](#post-tag)
 - [GET /tags](#get-tags)
@@ -198,9 +198,8 @@ would replace the oldest in the list.
 A client should implement an interface to display the current list of
 tags associated with it as returned by the `GET /tags` method.
 
-Note that with client identification, the client stores
-a token which uniquely identifies it to the tag service for the
-lifetime of that token only. If that identity is reset by the client
+Note that with client identification, the client stores a token which uniquely
+identifies it to the tag service. If that identity is reset by the client
 deleting the token, any tags which have been submitted against it are
 effectively orphaned.
 
@@ -336,6 +335,10 @@ HTTP Status Code  HTTP Status   Explanation
 -------------------------------------------------------------------------------
 Name                         Value
 ---------------------------  --------------------------------------------------
+WWW-Authenticate             Not set OR CPA response header to indicate
+                             requirement or optional ability to change
+                             authorization mode beyond current state
+
 RadioTAG-Service-Provider    The display name of the tag service provider
 
 -------------------------------------------------------------------------------
@@ -918,6 +921,7 @@ authentication token.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
+Authorization:↵
 Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
@@ -1247,7 +1251,9 @@ Pragma: no-cache↵
 {↵
   "device_code": "jkndsfai1324j0fasdkffdsoijgqwer",↵
   "user_code": "Abf13",↵
-  "verification_uri": "https://ap.example.com/verify"↵
+  "verification_uri": "https://ap.example.com/verify",↵
+  "expires_in": 1800,
+  "interval": 5↵
 }
 ~~~~
 
@@ -1273,7 +1279,10 @@ implemented:
 #### Polling to validate registration
 
 Whilst the user is completing the web front end steps, the client can
-begin to poll the AP to see if they have been paired.
+begin to poll the AP to see if they have been paired. The request should be
+repeated, at most, as frequently as the `interval` duration advises.
+
+Polling should be attempted for no longer than the `expires_in` duration.
 
 ##### Request
 
@@ -1292,23 +1301,21 @@ Content-type: application/json↵
 ##### Intermediate Response
 
 Whilst the user is still in the process of registering with the web
-front end, the response to this request will indicate a pending state
-and advise the client on how soon it should return to ask again.
+front end, the response to this request will indicate a pending state.
 
 The same request is repeated each time.
 
 ~~~~ {.example}
-HTTP/1.1 200 OK↵
+HTTP/1.1 400 Bad Request↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
 Content-type: application/json↵
 Cache-control: no-store↵
 Pragma: no-cache↵
 
 {
+  "error": "authorization_pending"
 }
 ~~~~
-
-[TODO] Body is currently undefined in CPA draft
 
 #### Final Response
 
@@ -1686,6 +1693,8 @@ Pragma: no-cache↵
   "device_code": "jkndsfai1324j0fasdkffdsoijgqwer",↵
   "user_code": "Abf13",↵
   "verification_uri": "https://ap.example.com/verify"↵
+  "expires_in": 1800↵
+  "interval": 5↵
 }
 ~~~~
 
@@ -1699,16 +1708,39 @@ implementation.
 #### Poll for token
 
 Whilst the user is dealing with the web front end, the client should
-poll for a token which will return in the event of the user completing
-the necessary steps on the web front end.
+poll for a token at the rate indicated in the `interval` which will return in
+the event of the user completing the necessary steps on the web front end.
 
 ##### Request
 
-x
+~~~~ {.example}
+POST /token HTTP/1.1↵
+Content-type: application/x-www-form-urlencoded↵
+Host: ap.bbc.co.uk↵
+↵
+{↵
+  "grant_type": "authorization_code",↵
+  "client_id": "1234",↵
+  "device_code": "jkndsfai1324j0fasdkffdsoijgqwer"↵
+}↵
+~~~~
 
 ##### Response
 
-y
+~~~~ {.example}
+HTTP/1.1 200 OK↵
+Date: Fri, 21 Oct 2011 12:59:49 GMT↵
+Content-type: application/json↵
+Cache-control: no-store↵
+Pragma: no-cache↵
+
+{
+  "user_display_name": "Alice",
+  "token": "alsdkfmasdfn1j23nsfjn1",
+  "token_type": "bearer",
+  "scope": "sp.example.com"
+}
+~~~~
 
 ##### Request
 
