@@ -1,6 +1,6 @@
 % RadioTAG 1.00 specification, draft 6
 % Sean O'Halpin (BBC R&D); Chris Lowis (BBC R&D)
-% 2014-02-
+% 2014-03-
 ## Front matter
 ### Authors
 
@@ -26,9 +26,13 @@ Andy Buckingham (togglebit), Robin Cooksey (Frontier Silicon)
     - 'paired' changed to 'user (identity)'
     - 'client' changed to 'receiver'
     - 'can_register' changed to 'identity'
-- Draft 6: 2014-02-
+- Draft 6: 2014-03-
     - Updated terminology to reflect CPA terms
     - Replaced Tag auth procedure with draft CPA procedure
+    - Updated and simplified req/rep examples, ensured compliance with latest
+      CPA draft, made FQDN and URLs consistent across examples
+    - Added RadioDNS discovery
+    - Added recommendation for TLS (HTTPS)
 
 ### URL
 
@@ -77,13 +81,42 @@ station. The tag service responds by sending a tag entry containing
 relevant metadata. The tag data may be stored on the server and may be
 viewed on the client or on the web or be used for another application.
 
-### Service discovery
+### Application discovery
 
-[TODO] RadioDNS lookup.
+A client must be capable of resolving the authorative FQDN for a service via the
+methdology defined in the RadioDNS specification.
+
+Application lookup may then be performed against this FQDN by means of a DNS SRV
+Record request using the service name `radiotag`.
+
+If at least one SRV record is successfully resolved, this service supports the
+RadioTAG application, accessed on the host and port indicated in the relevant
+SRV record. For example, for a query made to:
+
+    _radiotag._tcp.bbc.co.uk.
+
+Using the nslookup tool, this would yield the following SRV record:
+
+    service = 0 100 80 radiotag.bbc.co.uk.
+
+This indicates that the RadioTAG application can be accessed on the FQDN
+radiotag.bbc.co.uk, port 80.
+
+Note that more than one SRV record may be returned with differing values. This
+can be used for load balancing purposes by providing different FQDNs/Ports with
+different priorities/weightings. See the SRV record specification for a more
+detailed explanation on handling SRV resolution results.
 
 ### HTTPS
 
-[TODO] All API calls must use HTTPS.
+Any implementation of RadioTAG MUST require the use of Transport Layer Security
+(TLS).
+
+The appropriate version (or versions) of TLS will vary over time, based on the
+widespread deployment and known security vulnerabilities.
+
+Implementations MAY also support additional transport-layer security mechanisms
+that meet their security requirements.
 
 ### Tag requests
 
@@ -112,7 +145,7 @@ an application running on a mobile phone or in a web browser.
 
 The **tag service** is the web service provided by the broadcaster to
 respond to client requests. It must implement a number of endpoints
-depending on the level of service it provides.
+depending on the authorization modes it provides.
 
 ### Authentication
 
@@ -121,36 +154,36 @@ application should be secured using the processes detailed in the CPA
 specification. This specification simply aims to highlight the important
 components and the direct impact they have on the implementation of tagging.
 
-### Levels of identity
+### Authorization modes
 
-There are three levels of identity a tag service can provide:
+There are three modes a tag service can provide:
 
-- anonymous
+- unidentified
 - client
 - user
 
 *User* in this context refers to an authenticated user account.
 
-The levels of identification are distinguished by whether or not tags
+The authorization modes are distinguished by whether or not tags
 are retrievable on the device or on the web and by whether you need a
 user account on the broadcaster's web service. The table below
 summarizes the differences:
 
----------------------------------------------------------------------
-Level of identity  Tag list on device  Tag list on web  Account needed
------------------  ------------------  ---------------  --------------
-Unidentified       No                  No               No
+-----------------------------------------------------------------------
+Authorization mode  Tag list on device  Tag list on web  Account needed
+------------------  ------------------  ---------------  --------------
+Unidentified        No                  No               No
 
-Client             Yes                 No               No
+Client              Yes                 No               No
 
-User               Yes                 Yes              Yes
+User                Yes                 Yes              Yes
 
----------------------------------------------------------------------
+-----------------------------------------------------------------------
 
-These levels of identification can be provided in a number of
-combinations. For example, a service may offer anonymous tagging by
-default which can be upgraded to user tagging or it may support
-tagging out of the box (client) with no option to pair the device to
+These authorization modes can be provided in a number of
+combinations. For example, a service may offer unidentified tagging by
+default which can be upgraded to user mode tagging or it may support
+tagging out of the box (client mode) with no option to pair the device to
 an online user account. These are the possible combinations:
 
 - Unidentified only
@@ -158,12 +191,17 @@ an online user account. These are the possible combinations:
 - Client only
 - Client upgradeable to user
 
-The client and user levels map directly to the equivalant levels of authentication
+The client and user modes map directly to the equivalant authorization modes
 offered within the CPA specification.
+
+There is no defined combination to upgrade from unidentified to client mode.
+This is an automated operation, no end user input is proposed in this process.
+Any client capable of upgrading to client mode will do so automatically and
+therefore never originate in an unidentified state.
 
 ### No identity
 
-Unidentified tagging is the minimal level of service. The broadcaster must
+Unidentified tagging is the minimal mode of service. The broadcaster must
 provide the following endpoint:
 
 - [POST /tag](#post-tag)
@@ -172,7 +210,7 @@ A `POST` to this endpoint should return metadata relevant to the station
 and time specified in the request. Tags are *not* stored on the server
 so it is not possible to retrieve a list of tags on the client.
 
-### Client identity
+### Client mode
 
 Client identity is designed to provide an "out-of-the-box"
 experience without the user having to create an account and pair the
@@ -181,7 +219,7 @@ store tags on the server without being associated with an
 authenticated user account.
 
 To indicate that it supports client identity, the server must issue a
-`WWW-Authenticate` response-header with a `client` scope to an unauthorized
+`WWW-Authenticate` response-header with a `client` mode to an unauthorized
 request to `POST /tag`. It must provide the following endpoints:
 
 - [POST /tag](#post-tag)
@@ -203,7 +241,7 @@ identifies it to the tag service. If that identity is reset by the client
 deleting the token, any tags which have been submitted against it are
 effectively orphaned.
 
-### User identity
+### User mode
 
 User identity is where the client has been paired to an
 authenticated user's account on a tag service. The same limits apply
@@ -275,18 +313,6 @@ as is.
 
 UTF-8 is the only supported character set.
 
-### Common response headers
-
---------------------------------------------------------------------------------
-Name                         Value
----------------------------  ---------------------------------------------------
-RadioTAG-Service-Provider    The display name of the tag service provider
-
---------------------------------------------------------------------------------
-
-The `RadioTAG-Service-Provider` header should be returned in all
-responses.
-
 ### POST /tag
 
 #### Request
@@ -339,8 +365,6 @@ WWW-Authenticate             Not set OR CPA response header to indicate
                              requirement or optional ability to change
                              authorization mode beyond current state
 
-RadioTAG-Service-Provider    The display name of the tag service provider
-
 -------------------------------------------------------------------------------
 
 ##### Body
@@ -358,9 +382,8 @@ explanation of why the request failed.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-Content-Length: 43↵
-Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
+Content-Type: application/x-www-form-urlencoded↵
 ↵
 station=0.c224.ce15.ce1.dab&time=1312301004
 ~~~~
@@ -370,10 +393,8 @@ station=0.c224.ce15.ce1.dab&time=1312301004
 ~~~~ {.example}
 HTTP/1.1 401 Unauthorized↵
 Date: Tue, 02 Aug 2011 16:03:24 GMT↵
-WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "client"↵
-RadioTAG-Service-Provider: BBC↵
+WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="client"↵
 Content-Type: text/html;charset=utf-8↵
-Content-Length: 18↵
 ↵
 Must request client token
 ~~~~
@@ -384,10 +405,9 @@ Must request client token
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
-Content-Length: 43↵
-Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
+Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
+Content-Type: application/x-www-form-urlencoded↵
 ↵
 station=0.c224.ce15.ce1.dab&time=1312301004
 ~~~~
@@ -397,17 +417,15 @@ station=0.c224.ce15.ce1.dab&time=1312301004
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Tue, 02 Aug 2011 16:03:25 GMT↵
-WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
-RadioTAG-Service-Provider: BBC↵
+WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
-Content-Length: 957↵
 ↵
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
       xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>PM</title>
-  <link href="http://radiotag.example.com"/>
-  <link href="http://radiotag.example.com" rel="self"/>
+  <link href="http://radiotag.bbc.co.uk"/>
+  <link href="http://radiotag.bbc.co.uk" rel="self"/>
   <updated>2011-08-02T17:03:24+01:00</updated>
   <author>
     <name>BBC</name>
@@ -431,7 +449,7 @@ Content-Length: 957↵
 ~~~~
 
 Note that the response header contains the `WWW-Authenticate` header
-with a scope value of `user`. This will be present only if the service
+with a `user` modes value. This will be present only if the service
 supports user tagging.
 
 #### Example 3 - `POST /tag` with a valid user token
@@ -440,10 +458,9 @@ supports user tagging.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-Authorization: Bearer kldhvkjxhoiqwyeh3khkj3↵
-Content-Length: 43↵
-Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
+Authorization: Bearer kldhvkjxhoiqwyeh3khkj3↵
+Content-Type: application/x-www-form-urlencoded↵
 ↵
 station=0.c224.ce15.ce1.dab&time=1312302129
 ~~~~
@@ -453,16 +470,14 @@ station=0.c224.ce15.ce1.dab&time=1312302129
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Tue, 02 Aug 2011 16:22:09 GMT↵
-RadioTAG-Service-Provider: BBC↵
 Content-Type: application/xml;charset=utf-8↵
-Content-Length: 958↵
 ↵
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
       xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>PM</title>
-  <link href="http://radiotag.example.com"/>
-  <link href="http://radiotag.example.com" rel="self"/>
+  <link href="http://radiotag.bbc.co.uk"/>
+  <link href="http://radiotag.bbc.co.uk" rel="self"/>
   <updated>2011-08-02T17:22:09+01:00</updated>
   <author>
     <name>BBC</name>
@@ -494,9 +509,8 @@ headers but does contain the paired user account name.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-Content-Length: 43↵
-Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
+Content-Type: application/x-www-form-urlencoded↵
 ↵
 station=0.c224.ce15.ce1.dab&time=1312195118
 ~~~~
@@ -506,17 +520,15 @@ station=0.c224.ce15.ce1.dab&time=1312195118
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Mon, 01 Aug 2011 10:38:38 GMT↵
-WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
-RadioTAG-Service-Provider: BBC↵
+WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
-Content-Length: 992↵
 ↵
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
       xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Meet David Sedaris</title>
-  <link href="http://radiotag.example.com"/>
-  <link href="http://radiotag.example.com" rel="self"/>
+  <link href="http://radiotag.bbc.co.uk"/>
+  <link href="http://radiotag.bbc.co.uk" rel="self"/>
   <updated>2011-08-01T11:38:38+01:00</updated>
   <author>
     <name>BBC</name>
@@ -545,9 +557,8 @@ Content-Length: 992↵
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-Content-Length: 43↵
-Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
+Content-Type: application/x-www-form-urlencoded↵
 ↵
 station=0.c224.ce15.ce1.dab&time=1312195118
 ~~~~
@@ -557,16 +568,14 @@ station=0.c224.ce15.ce1.dab&time=1312195118
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Mon, 01 Aug 2011 10:38:38 GMT↵
-RadioTAG-Service-Provider: BBC↵
 Content-Type: application/xml;charset=utf-8↵
-Content-Length: 992↵
 ↵
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
       xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Meet David Sedaris</title>
-  <link href="http://radiotag.example.com"/>
-  <link href="http://radiotag.example.com" rel="self"/>
+  <link href="http://radiotag.bbc.co.uk"/>
+  <link href="http://radiotag.bbc.co.uk" rel="self"/>
   <updated>2011-08-01T11:38:38+01:00</updated>
   <author>
     <name>BBC</name>
@@ -631,8 +640,8 @@ specification](http://www.oclc.org/developer/platform/query-responses).
 
 ~~~~ {.example}
 GET /tags HTTP/1.1↵
-Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Host: radiotag.bbc.co.uk↵
+Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 ↵
 ~~~~
 
@@ -650,15 +659,6 @@ HTTP Status Code  HTTP Status   Explanation
 
 --------------------------------------------------------------------------------
 
-##### Headers
-
---------------------------------------------------------------------------------
-Name                         Value
----------------------------  ---------------------------------------------------
-RadioTAG-Service-Provider    The display name of the tag service provider
-
---------------------------------------------------------------------------------
-
 ##### Body
 
 ##### Example
@@ -666,17 +666,15 @@ RadioTAG-Service-Provider    The display name of the tag service provider
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Tue, 02 Aug 2011 16:22:08 GMT↵
-WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
-RadioTAG-Service-Provider: BBC↵
+WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
-Content-Length: 974↵
 ↵
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
        xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Tag List</title>
-  <link href="http://radiotag.example.com/tags"/>
-  <link href="http://radiotag.example.com/tags" rel="self"/>
+  <link href="http://radiotag.bbc.co.uk/tags"/>
+  <link href="http://radiotag.bbc.co.uk/tags" rel="self"/>
   <updated>2011-08-02T17:22:08+01:00</updated>
   <author>
     <name>BBC</name>
@@ -753,7 +751,7 @@ radiotag:sid      RadioDNS service identifier                      32
 
 Note the difference here between `id` and `link rel="self"`. `id` is a
 globally unique identifier. `link rel="self"` gives the url as visible
-to the device/user (i.e. scoped by the auth token).
+to the client/user (i.e. scoped by the auth mode).
 
 Also note that we are interpreting the `published` entry as equivalent
 to the tag time. The `updated` element can be used to indicate that the
@@ -773,8 +771,8 @@ The example below shows these elements in context:
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
       xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Meet David Sedaris</title>
-  <link href="http://radiotag.example.com"/>
-  <link href="http://radiotag.example.com" rel="self"/>
+  <link href="http://radiotag.bbc.co.uk"/>
+  <link href="http://radiotag.bbc.co.uk" rel="self"/>
   <updated>2011-08-01T11:38:38+01:00</updated>
   <author>
     <name>BBC</name>
@@ -804,8 +802,8 @@ The example below shows these elements in context:
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
       xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
   <title>Tag List</title>
-  <link href="http://radiotag.example.com/tags"/>
-  <link href="http://radiotag.example.com/tags" rel="self"/>
+  <link href="http://radiotag.bbc.co.uk/tags"/>
+  <link href="http://radiotag.bbc.co.uk/tags" rel="self"/>
   <updated>2011-08-02T17:22:09+01:00</updated>
   <author>
     <name>BBC</name>
@@ -876,15 +874,6 @@ url               255                 See [RFC 2616 Section
 
 ----------------------------------------------------------------------------------------------
 
-### HTTP Headers
-
------------------------------------------------
-Headers                      Max. size in bytes
----------------------------  ------------------
-RadioTAG-Service-Provider    16
-
------------------------------------------------
-
 # Appendix
 
 ## Narratives
@@ -921,10 +910,9 @@ authentication token.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-Authorization:↵
-Content-Length: 43↵
-Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
+Authorization:↵
+Content-Type: application/x-www-form-urlencoded↵
 ↵
 station=0.c224.ce15.ce1.dab&time=1319201989
 ~~~~
@@ -934,21 +922,19 @@ station=0.c224.ce15.ce1.dab&time=1319201989
 When a tag service supports client tagging, it responds to an
 unauthenticated `/tag` request by returning a `401 Unauthorized`
 response containing a `WWW-Authenticate` header that advertises the
-ability to elevate identity level.
+ability to upgrade authorization mode.
 
-This header consists of two parts: a **realm** a plain text string
-suitable for display in a client UI to indicate an authentication
-attempt and a **scope** which is used to inform the client which
-method of the CPA specification should be attempted.
-
-The body contains the JSON object specified in the CPA to inform
-the client of the location of the Authorization Provider (AP).
+This header consists of three parts: `name`, a plain text string
+suitable for display in a client UI to indicate who or what the client
+is attempting to authorize with or for, a `uri` which provides the
+base or prefix to all CPA endpoint URLs, and `mode` which is used to
+inform the client which upgradable modes of the CPA specification are
+supported by this auth provider.
 
 ~~~~ {.example}
 HTTP/1.1 401 Unauthorized↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "client"↵
-RadioTAG-Service-Provider: BBC↵
+WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="client"↵
 Content-Type: text/html;charset=utf-8↵
 ↵
 Must request client token
@@ -956,15 +942,14 @@ Must request client token
 
 ##### Request
 
-As per the CPA specification, the client begins a client level
-registration.
+As per the CPA specification, the client begins a client mode registration.
 
 Because it has no client identifiers, it must first request these.
 
 ~~~~ {.example}
 POST /register HTTP/1.1↵
-Content-Type: application/json↵
 Host: ap.bbc.co.uk↵
+Content-Type: application/json↵
 ↵
 {
   "client_name": "Revo Axis",
@@ -983,9 +968,7 @@ Date: Fri, 21 Oct 2011 12:59:49 GMT↵
 ↵
 {
   "client_id": "1234",
-  "client_secret": "sdalfqealskdfnk13984r2n23klndvs",
-  "registration_access_token": "askdjfnweiorj134n9gjnr23",
-  "registration_client_uri": "http://ap.example.com/register"
+  "client_secret": "sdalfqealskdfnk13984r2n23klndvs"
 }
 ~~~~
 
@@ -996,13 +979,14 @@ these can be exchanged for a client token.
 
 ~~~~ {.example}
 POST /token HTTP/1.1↵
-Content-type: application/x-www-form-urlencoded↵
 Host: ap.bbc.co.uk↵
+Content-type: application/x-www-form-urlencoded↵
 ↵
 {
-  "grant_type": "authorization_code",
+  "grant_type": "authorization_code"
   "client_id": "1234",
-  "client_secret": "sdalfqealskdfnk13984r2n23klndvs"
+  "client_secret": "sdalfqealskdfnk13984r2n23klndvs",
+  "scope": "radiotag.bbc.co.uk"
 }
 ~~~~
 
@@ -1011,15 +995,18 @@ Host: ap.bbc.co.uk↵
 The token is returned in a JSON response object.
 
 ~~~~ {.example}
-HTTP/1.1 200 OK
+HTTP/1.1 200 OK↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-Content-type: application/json
-Cache-control: no-store
-Pragma: no-cache
-
+Content-type: application/json↵
+Cache-control: no-store↵
+Pragma: no-cache↵
+↵
 {
+  "description": "RadioTAG token for user Alice",
+  "short_description": "Alice",
   "token": "alsdkfmasdfn1j23nsfjn1",
-  "token_type": "bearer"
+  "token_type": "bearer",
+  "scope": "radiotag.bbc.co.uk"
 }
 ~~~~
 
@@ -1032,7 +1019,6 @@ of a POST request to `/tag`.
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
 Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
-Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
 ↵
@@ -1053,10 +1039,8 @@ programme is shown below:
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
-RadioTAG-Service-Provider: BBC↵
+WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
-Content-Length: 1032↵
 ↵
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
@@ -1089,7 +1073,7 @@ Content-Length: 1032↵
 #### Press OK
 
 In the previous, successful `/tag` request, the server's response
-contained an invitation to authenticate at a user level. The presence of
+contained an invitation to upgrade to user mode. The presence of
 this header indicates to the client that the server supports the pairing a
 client with a user account. At this stage the client can present to the
 user the option to register with the server, or to accept the information
@@ -1120,10 +1104,8 @@ for this device.
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-RadioTAG-Service-Provider: BBC↵
-WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
+WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
-Content-Length: 1042↵
 ↵
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
@@ -1164,7 +1146,6 @@ the `Tag` button as before.
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
 Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
-Content-Length: 43↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
 ↵
@@ -1182,10 +1163,8 @@ register.
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-RadioTAG-Service-Provider: BBC↵
-WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
+WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
-Content-Length: 1032↵
 ↵
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
@@ -1232,7 +1211,7 @@ Host: ap.bbc.co.uk↵
 {
   "client_id": "1234",
   "client_secret": "sdalfqealskdfnk13984r2n23klndvs",
-  "scope": "sp.example.com"
+  "scope": "radiotag.bbc.co.uk"
 }
 ~~~~
 
@@ -1248,12 +1227,11 @@ Content-Type: application/json↵
 Cache-Control: no-store↵
 Pragma: no-cache↵
 ↵
-{↵
-  "device_code": "jkndsfai1324j0fasdkffdsoijgqwer",↵
-  "user_code": "Abf13",↵
-  "verification_uri": "https://ap.example.com/verify",↵
+{
+  "user_code": "Abf13",
+  "verification_uri": "https://www.bbc.co.uk/id/device",
   "expires_in": 1800,
-  "interval": 5↵
+  "interval": 5
 }
 ~~~~
 
@@ -1294,7 +1272,8 @@ Content-type: application/json↵
 {
   "grant_type": "authorization_code",
   "client_id": "1234",
-  "device_code": "jkndsfai1324j0fasdkffdsoijgqwer"
+  "client_secret": "jkndsfai1324j0fasdkffdsoijgqwer",
+  "scope": "radiotag.bbc.co.uk"
 }
 ~~~~
 
@@ -1306,14 +1285,14 @@ front end, the response to this request will indicate a pending state.
 The same request is repeated each time.
 
 ~~~~ {.example}
-HTTP/1.1 400 Bad Request↵
+HTTP/1.1 202 Accepted↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
 Content-type: application/json↵
 Cache-control: no-store↵
 Pragma: no-cache↵
-
+↵
 {
-  "error": "authorization_pending"
+  "reason": "authorization_pending"
 }
 ~~~~
 
@@ -1330,12 +1309,13 @@ Date: Fri, 21 Oct 2011 12:59:49 GMT↵
 Content-type: application/json↵
 Cache-control: no-store↵
 Pragma: no-cache↵
-
+↵
 {
-  "user_display_name": "Alice",
+  "description": "RadioTAG token for user Alice",
+  "short_description": "Alice",
   "token": "alsdkfmasdfn1j23nsfjn1",
   "token_type": "bearer",
-  "scope": "sp.example.com"
+  "scope": "radiotag.bbc.co.uk"
 }
 ~~~~
 
@@ -1350,10 +1330,9 @@ stored against the user's account.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
-Content-Length: 43↵
-Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
+Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
+Content-Type: application/x-www-form-urlencoded↵
 ↵
 station=0.c224.ce15.ce1.dab&time=1319201990
 ~~~~
@@ -1363,9 +1342,7 @@ station=0.c224.ce15.ce1.dab&time=1319201990
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Fri, 21 Oct 2011 12:59:50 GMT↵
-RadioTAG-Service-Provider: BBC↵
 Content-Type: application/xml;charset=utf-8↵
-Content-Length: 1032↵
 ↵
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
@@ -1406,8 +1383,8 @@ above are returned in the Atom feed.
 
 ~~~~ {.example}
 GET /tags HTTP/1.1↵
-Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Host: radiotag.bbc.co.uk↵
+Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 ↵
 ~~~~
 
@@ -1416,9 +1393,7 @@ Host: radiotag.bbc.co.uk↵
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Fri, 21 Oct 2011 12:59:50 GMT↵
-RadioTAG-Service-Provider: BBC↵
 Content-Type: application/xml;charset=utf-8↵
-Content-Length: 2268↵
 ↵
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
@@ -1492,9 +1467,8 @@ same as in the client case above.
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-Content-Length: 43↵
-Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
+Content-Type: application/x-www-form-urlencoded↵
 ↵
 station=0.c224.ce15.ce1.dab&time=1319201989
 ~~~~
@@ -1507,15 +1481,13 @@ should resubmit the tag request after registration.
 
 Note that just like the client case, the response contains a
 `WWW-Authenticate` header. The client can use this to provide the choice
-to accept the result or elevate the client to a user identity level.
+to accept the result or upgrade from client to user mode.
 
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Fri, 21 Oct 2011 13:00:59 GMT↵
-WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
-RadioTAG-Service-Provider: BBC↵
+WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
-Content-Length: 973↵
 ↵
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
@@ -1567,8 +1539,7 @@ stored on the server.
 ~~~~ {.example}
 HTTP/1.1 401 Unauthorized↵
 Date: Fri, 21 Oct 2011 13:00:59 GMT↵
-WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
-RadioTAG-Service-Provider: BBC↵
+WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: text/html;charset=utf-8↵
 ↵
 Must request user token
@@ -1580,9 +1551,8 @@ Must request user token
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-Content-Length: 43↵
-Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
+Content-Type: application/x-www-form-urlencoded↵
 ↵
 station=0.c224.ce15.ce1.dab&time=1319202059
 ~~~~
@@ -1595,10 +1565,8 @@ request is 200.
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Fri, 21 Oct 2011 13:01:00 GMT↵
-WWW-Authenticate: CPA auth_uri="https://www.bbc.co.uk/id/device/token" "user"↵
-RadioTAG-Service-Provider: BBC↵
+WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
-Content-Length: 973↵
 ↵
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
@@ -1632,15 +1600,14 @@ Content-Length: 973↵
 
 ##### Request
 
-As per the CPA specification, the client begins a client level
-registration.
+As per the CPA specification, the client begins a client mode registration.
 
 Because it has no client identifiers, it must first request these.
 
 ~~~~ {.example}
 POST /register HTTP/1.1↵
-Content-Type: application/json↵
 Host: ap.bbc.co.uk↵
+Content-Type: application/json↵
 ↵
 {
   "client_name": "Revo Axis",
@@ -1659,9 +1626,7 @@ Date: Fri, 21 Oct 2011 12:59:49 GMT↵
 ↵
 {
   "client_id": "1234",
-  "client_secret": "sdalfqealskdfnk13984r2n23klndvs",
-  "registration_access_token": "askdjfnweiorj134n9gjnr23",
-  "registration_client_uri": "http://ap.example.com/register"
+  "client_secret": "sdalfqealskdfnk13984r2n23klndvs"
 }
 ~~~~
 
@@ -1672,12 +1637,13 @@ the client can begin user mode association.
 
 ~~~~ {.example}
 POST /associate HTTP/1.1↵
+Host: ap.bbc.co.uk↵
 Content-type: application/json↵
 ↵
-{↵
-  "client_id": "1234",↵
-  "client_secret": "sdalfqealskdfnk13984r2n23klndvs",↵
-  "scope": "sp.example.com"↵
+{
+  "client_id": "1234",
+  "client_secret": "sdalfqealskdfnk13984r2n23klndvs",
+  "scope": "radiotag.bbc.co.uk"
 }
 ~~~~
 
@@ -1689,12 +1655,11 @@ Content-type: application/json↵
 Cache-Control: no-store↵
 Pragma: no-cache↵
 ↵
-{↵
-  "device_code": "jkndsfai1324j0fasdkffdsoijgqwer",↵
-  "user_code": "Abf13",↵
-  "verification_uri": "https://ap.example.com/verify"↵
-  "expires_in": 1800↵
-  "interval": 5↵
+{
+  "user_code": "Abf13",
+  "verification_uri": "https://www.bbc.co.uk/id/verify"
+  "expires_in": 1800
+  "interval": 5
 }
 ~~~~
 
@@ -1715,14 +1680,15 @@ the event of the user completing the necessary steps on the web front end.
 
 ~~~~ {.example}
 POST /token HTTP/1.1↵
-Content-type: application/x-www-form-urlencoded↵
 Host: ap.bbc.co.uk↵
+Content-type: application/x-www-form-urlencoded↵
 ↵
-{↵
-  "grant_type": "authorization_code",↵
-  "client_id": "1234",↵
-  "device_code": "jkndsfai1324j0fasdkffdsoijgqwer"↵
-}↵
+{
+  "grant_type": "authorization_code",
+  "client_id": "1234",
+  "device_code": "jkndsfai1324j0fasdkffdsoijgqwer",
+  "scope": "radiotag.bbc.co.uk"
+}
 ~~~~
 
 ##### Response
@@ -1733,12 +1699,13 @@ Date: Fri, 21 Oct 2011 12:59:49 GMT↵
 Content-type: application/json↵
 Cache-control: no-store↵
 Pragma: no-cache↵
-
+↵
 {
-  "user_display_name": "Alice",
+  "description": "RadioTAG token for user Alice",
+  "short_name": "Alice",
   "token": "alsdkfmasdfn1j23nsfjn1",
   "token_type": "bearer",
-  "scope": "sp.example.com"
+  "scope": "radiotag.bbc.co.uk"
 }
 ~~~~
 
@@ -1751,10 +1718,9 @@ acquired `Authorization` header token value:
 
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
-Authorization: ???↵
-Content-Length: 43↵
-Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
+Authorization: Bearer jkndsfai1324j0fasdkffdsoijgqwer↵
+Content-Type: application/x-www-form-urlencoded↵
 ↵
 station=0.c224.ce15.ce1.dab&time=1319202060
 ~~~~
@@ -1768,9 +1734,7 @@ device and via the web.
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Fri, 21 Oct 2011 13:01:00 GMT↵
-RadioTAG-Service-Provider: BBC↵
 Content-Type: application/xml;charset=utf-8↵
-Content-Length: 973↵
 ↵
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:radiotag="http://radiodns.org/2011/radiotag"
