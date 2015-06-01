@@ -35,6 +35,7 @@ Andy Buckingham (togglebit), Robin Cooksey (Frontier Silicon)
     - Added recommendation for TLS (HTTPS)
     - Moved all endpoints in to RadioDNS-standardised path
     - Changed references from 'station' to 'radio service' or 'bearer'
+    - Add optional 'time_source' parameter
 
 ### URL
 
@@ -125,6 +126,10 @@ that meet their security requirements.
 A tag *request* specifies a time and bearer. The time is specified
 using seconds since Jan 1 1970, i.e. the Unix epoch. The bearer is
 specified using the bearerURI format defined in ETSI TS 103 270.
+
+An optional attribute for the time's source is defined, which allows the
+broadcaster to make a more informed decision on the accuracy of the time value
+supplied and therefore the event that this request is in relation to.
 
 How that information is interpreted is up to the broadcaster.
 
@@ -336,12 +341,22 @@ Authorization          Not set OR client token OR user token
 ##### Parameters
 
 --------------------------------------------------------------------------------
-Name    Value
-------  ------------------------------------------------------------------------
-bearer  RadioDNS broadcast parameters joined with dots, e.g.
-        "0.c224.ce15.ce1.dab"
+Name         Value
+-----------  -------------------------------------------------------------------
+bearer       RadioDNS broadcast parameters joined with dots, e.g.
+             "0.c224.ce15.ce1.dab"
 
-time    Whole number of seconds since 00:00a.m Jan 1 1970 UTC (Unix Epoch)
+time         Whole number of seconds since 00:00a.m Jan 1 1970 UTC (Unix Epoch)
+
+time_source  (Optional) where the time is sourced from, value of either:
+
+             `user`      the user has set the client clock manually,
+             `broadcast` derived from the bearer's time source (e.g. RDS for FM,
+                         the FIG in DAB),
+             `ntp`       derived from IP source
+
+             When not set it is assumed the time is derived from the bearer's
+             time source.
 
 --------------------------------------------------------------------------------
 
@@ -392,7 +407,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=0.c224.ce15.ce1.dab&time=1312301004
+bearer=0.c224.ce15.ce1.dab&time=1312301004&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -416,7 +431,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=0.c224.ce15.ce1.dab&time=1312301004
+bearer=0.c224.ce15.ce1.dab&time=1312301004&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -469,7 +484,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization: Bearer kldhvkjxhoiqwyeh3khkj3↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=0.c224.ce15.ce1.dab&time=1312302129
+bearer=0.c224.ce15.ce1.dab&time=1312302129&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -519,7 +534,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=0.c224.ce15.ce1.dab&time=1312195118
+bearer=0.c224.ce15.ce1.dab&time=1312195118&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -567,7 +582,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=0.c224.ce15.ce1.dab&time=1312195118
+bearer=0.c224.ce15.ce1.dab&time=1312195118&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -920,7 +935,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization:↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=0.c224.ce15.ce1.dab&time=1319201989
+bearer=0.c224.ce15.ce1.dab&time=1319201989&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -1028,7 +1043,7 @@ Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
 ↵
-bearer=0.c224.ce15.ce1.dab&time=1319201989
+bearer=0.c224.ce15.ce1.dab&time=1319201989&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -1155,7 +1170,7 @@ Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
 ↵
-bearer=0.c224.ce15.ce1.dab&time=1319201989
+bearer=0.c224.ce15.ce1.dab&time=1319201989&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -1340,7 +1355,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=0.c224.ce15.ce1.dab&time=1319201990
+bearer=0.c224.ce15.ce1.dab&time=1319201990&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -1476,7 +1491,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=0.c224.ce15.ce1.dab&time=1319201989
+bearer=0.c224.ce15.ce1.dab&time=1319201989&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -1560,7 +1575,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=0.c224.ce15.ce1.dab&time=1319202059
+bearer=0.c224.ce15.ce1.dab&time=1319202059&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -1728,7 +1743,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization: Bearer jkndsfai1324j0fasdkffdsoijgqwer↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=0.c224.ce15.ce1.dab&time=1319202060
+bearer=0.c224.ce15.ce1.dab&time=1319202060&time_source=broadcast
 ~~~~
 
 ##### Response
