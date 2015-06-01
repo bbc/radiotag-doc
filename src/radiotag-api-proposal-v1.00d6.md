@@ -416,7 +416,7 @@ bearer=dab:ce1.ce15.c224.0&time=1312301004&time_source=broadcast
 ~~~~ {.example}
 HTTP/1.1 401 Unauthorized↵
 Date: Tue, 02 Aug 2011 16:03:24 GMT↵
-WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="client"↵
+WWW-Authenticate: CPA version="1.0" name="BBC AP" uri="https://ap.bbc.co.uk" modes="client"↵
 Content-Type: text/html;charset=utf-8↵
 ↵
 Must request client token
@@ -440,7 +440,7 @@ bearer=dab:ce1.ce15.c224.0&time=1312301004&time_source=broadcast
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Tue, 02 Aug 2011 16:03:25 GMT↵
-WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
+WWW-Authenticate: CPA version="1.0" name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
 ↵
 <?xml version="1.0"?>
@@ -543,7 +543,7 @@ bearer=dab:ce1.ce15.c224.0&time=1312195118&time_source=broadcast
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Mon, 01 Aug 2011 10:38:38 GMT↵
-WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
+WWW-Authenticate: CPA version="1.0" name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
 ↵
 <?xml version="1.0"?>
@@ -689,7 +689,7 @@ HTTP Status Code  HTTP Status   Explanation
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Tue, 02 Aug 2011 16:22:08 GMT↵
-WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
+WWW-Authenticate: CPA version="1.0" name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
 ↵
 <?xml version="1.0"?>
@@ -956,7 +956,7 @@ supported by this auth provider.
 ~~~~ {.example}
 HTTP/1.1 401 Unauthorized↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="client"↵
+WWW-Authenticate: CPA version="1.0" name="BBC AP" uri="https://ap.bbc.co.uk" modes="client"↵
 Content-Type: text/html;charset=utf-8↵
 ↵
 Must request client token
@@ -1061,7 +1061,7 @@ programme is shown below:
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
+WWW-Authenticate: CPA version="1.0" name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
 ↵
 <?xml version="1.0"?>
@@ -1126,7 +1126,7 @@ for this device.
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
+WWW-Authenticate: CPA version="1.0" name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
 ↵
 <?xml version="1.0"?>
@@ -1185,7 +1185,7 @@ register.
 ~~~~ {.example}
 HTTP/1.1 201 Created↵
 Date: Fri, 21 Oct 2011 12:59:49 GMT↵
-WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
+WWW-Authenticate: CPA version="1.0" name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
 ↵
 <?xml version="1.0"?>
@@ -1508,7 +1508,7 @@ to accept the result or upgrade from client to user mode.
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Fri, 21 Oct 2011 13:00:59 GMT↵
-WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
+WWW-Authenticate: CPA version="1.0" name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
 ↵
 <?xml version="1.0"?>
@@ -1561,7 +1561,7 @@ stored on the server.
 ~~~~ {.example}
 HTTP/1.1 401 Unauthorized↵
 Date: Fri, 21 Oct 2011 13:00:59 GMT↵
-WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
+WWW-Authenticate: CPA version="1.0" name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: text/html;charset=utf-8↵
 ↵
 Must request user token
@@ -1587,7 +1587,7 @@ request is 200.
 ~~~~ {.example}
 HTTP/1.1 200 OK↵
 Date: Fri, 21 Oct 2011 13:01:00 GMT↵
-WWW-Authenticate: CPA name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
+WWW-Authenticate: CPA version="1.0" name="BBC AP" uri="https://ap.bbc.co.uk" modes="user"↵
 Content-Type: application/xml;charset=utf-8↵
 ↵
 <?xml version="1.0"?>
