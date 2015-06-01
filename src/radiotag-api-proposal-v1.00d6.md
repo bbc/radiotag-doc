@@ -34,6 +34,7 @@ Andy Buckingham (togglebit), Robin Cooksey (Frontier Silicon)
     - Added RadioDNS discovery
     - Added recommendation for TLS (HTTPS)
     - Moved all endpoints in to RadioDNS-standardised path
+    - Changed references from 'station' to 'radio service' or 'bearer'
 
 ### URL
 
@@ -46,7 +47,7 @@ This document specifies version 1.00 of the RadioTAG protocol.
 The RadioTAG protocol defines how a client (e.g. an IP-enabled radio)
 discovers whether a broadcaster supports RadioTAG and if so how it then
 communicates with a broadcaster-provided web service to record the time
-and station being listened to.
+and radio service being listened to.
 
 The protocol defines how the Cross Platform Authentication (CPA) protocol is
 implemented within this protocol, to allow the client to obtain authorization to
@@ -78,7 +79,7 @@ element contains and what limits apply, see [data formats](#data-formats).
 ## Concepts
 
 A client sends a tag request to a tag service, specifying a time and
-station. The tag service responds by sending a tag entry containing
+radio service. The tag service responds by sending a tag entry containing
 relevant metadata. The tag data may be stored on the server and may be
 viewed on the client or on the web or be used for another application.
 
@@ -121,9 +122,9 @@ that meet their security requirements.
 
 ### Tag requests
 
-A tag *request* specifies a time and station. The time is specified
-using seconds since Jan 1 1970, i.e. the Unix epoch. The station is
-specified using the RadioDNS broadcast parameters.
+A tag *request* specifies a time and bearer. The time is specified
+using seconds since Jan 1 1970, i.e. the Unix epoch. The bearer is
+specified using the bearerURI format defined in ETSI TS 103 270.
 
 How that information is interpreted is up to the broadcaster.
 
@@ -212,7 +213,7 @@ provide the following endpoint:
 
 - [POST /tag](#post-tag)
 
-A `POST` to this endpoint should return metadata relevant to the station
+A `POST` to this endpoint should return metadata relevant to the radio service
 and time specified in the request. Tags are *not* stored on the server
 so it is not possible to retrieve a list of tags on the client.
 
@@ -335,12 +336,12 @@ Authorization          Not set OR client token OR user token
 ##### Parameters
 
 --------------------------------------------------------------------------------
-Name     Value
--------  -----------------------------------------------------------------------
-station  RadioDNS broadcast parameters joined with dots, e.g.
-         "0.c224.ce15.ce1.dab"
+Name    Value
+------  ------------------------------------------------------------------------
+bearer  RadioDNS broadcast parameters joined with dots, e.g.
+        "0.c224.ce15.ce1.dab"
 
-time     Whole number of seconds since 00:00a.m Jan 1 1970 UTC (Unix Epoch)
+time    Whole number of seconds since 00:00a.m Jan 1 1970 UTC (Unix Epoch)
 
 --------------------------------------------------------------------------------
 
@@ -391,7 +392,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-station=0.c224.ce15.ce1.dab&time=1312301004
+bearer=0.c224.ce15.ce1.dab&time=1312301004
 ~~~~
 
 ##### Response
@@ -415,7 +416,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-station=0.c224.ce15.ce1.dab&time=1312301004
+bearer=0.c224.ce15.ce1.dab&time=1312301004
 ~~~~
 
 ##### Response
@@ -468,7 +469,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization: Bearer kldhvkjxhoiqwyeh3khkj3↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-station=0.c224.ce15.ce1.dab&time=1312302129
+bearer=0.c224.ce15.ce1.dab&time=1312302129
 ~~~~
 
 ##### Response
@@ -518,7 +519,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-station=0.c224.ce15.ce1.dab&time=1312195118
+bearer=0.c224.ce15.ce1.dab&time=1312195118
 ~~~~
 
 ##### Response
@@ -566,7 +567,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-station=0.c224.ce15.ce1.dab&time=1312195118
+bearer=0.c224.ce15.ce1.dab&time=1312195118
 ~~~~
 
 ##### Response
@@ -904,9 +905,8 @@ The user presses the `Tag` button.
 
 ##### Request
 
-The client makes a POST request to the tag service with the `station`
-identifier (using the broadcast parameter string used in constructing a
-RadioDNS FQDN), and a `time`. Unix Time is used for the `time`
+The client makes a POST request to the tag service with the `bearer`
+identifier, and a `time`. Unix Time is used for the `time`
 parameter.
 
 As this client has no Auth Token, the `Authorization` header is blank.
@@ -920,7 +920,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization:↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-station=0.c224.ce15.ce1.dab&time=1319201989
+bearer=0.c224.ce15.ce1.dab&time=1319201989
 ~~~~
 
 ##### Response
@@ -1028,7 +1028,7 @@ Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
 ↵
-station=0.c224.ce15.ce1.dab&time=1319201989
+bearer=0.c224.ce15.ce1.dab&time=1319201989
 ~~~~
 
 ##### Response
@@ -1083,7 +1083,7 @@ contained an invitation to upgrade to user mode. The presence of
 this header indicates to the client that the server supports the pairing a
 client with a user account. At this stage the client can present to the
 user the option to register with the server, or to accept the information
-in the current tag and return to the default state for the station.
+in the current tag and return to the default state for the radio service.
 
 In this case, we chose the latter by pressing `OK`.
 
@@ -1155,7 +1155,7 @@ Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
 ↵
-station=0.c224.ce15.ce1.dab&time=1319201989
+bearer=0.c224.ce15.ce1.dab&time=1319201989
 ~~~~
 
 ##### Response
@@ -1340,7 +1340,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-station=0.c224.ce15.ce1.dab&time=1319201990
+bearer=0.c224.ce15.ce1.dab&time=1319201990
 ~~~~
 
 ##### Response
@@ -1476,7 +1476,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-station=0.c224.ce15.ce1.dab&time=1319201989
+bearer=0.c224.ce15.ce1.dab&time=1319201989
 ~~~~
 
 ##### Response
@@ -1560,7 +1560,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-station=0.c224.ce15.ce1.dab&time=1319202059
+bearer=0.c224.ce15.ce1.dab&time=1319202059
 ~~~~
 
 ##### Response
@@ -1728,7 +1728,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization: Bearer jkndsfai1324j0fasdkffdsoijgqwer↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-station=0.c224.ce15.ce1.dab&time=1319202060
+bearer=0.c224.ce15.ce1.dab&time=1319202060
 ~~~~
 
 ##### Response
