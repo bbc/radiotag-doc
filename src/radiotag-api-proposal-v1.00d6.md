@@ -1,6 +1,6 @@
 % RadioTAG 1.00 specification, draft 6
 % Sean O'Halpin (BBC R&D); Chris Lowis (BBC R&D)
-% 2014-03-
+% 2015-06-
 ## Front matter
 ### Authors
 
@@ -26,13 +26,14 @@ Andy Buckingham (togglebit), Robin Cooksey (Frontier Silicon)
     - 'paired' changed to 'user (identity)'
     - 'client' changed to 'receiver'
     - 'can_register' changed to 'identity'
-- Draft 6: 2014-03-
+- Draft 6: 2015-06-
     - Updated terminology to reflect CPA terms
     - Replaced Tag auth procedure with draft CPA procedure
     - Updated and simplified req/rep examples, ensured compliance with latest
       CPA draft, made FQDN and URLs consistent across examples
     - Added RadioDNS discovery
     - Added recommendation for TLS (HTTPS)
+    - Moved all endpoints in to RadioDNS-standardised path
 
 ### URL
 
@@ -146,6 +147,11 @@ an application running on a mobile phone or in a web browser.
 The **tag service** is the web service provided by the broadcaster to
 respond to client requests. It must implement a number of endpoints
 depending on the authorization modes it provides.
+
+### Base path
+
+All end points defined in this document are intended to be located on the tag
+service host within the base path `/radiodns/tag/1/`
 
 ### Authentication
 
@@ -381,7 +387,7 @@ explanation of why the request failed.
 ##### Request
 
 ~~~~ {.example}
-POST /tag HTTP/1.1↵
+POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
@@ -404,7 +410,7 @@ Must request client token
 ##### Request
 
 ~~~~ {.example}
-POST /tag HTTP/1.1↵
+POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Type: application/x-www-form-urlencoded↵
@@ -457,7 +463,7 @@ supports user tagging.
 ##### Request
 
 ~~~~ {.example}
-POST /tag HTTP/1.1↵
+POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Authorization: Bearer kldhvkjxhoiqwyeh3khkj3↵
 Content-Type: application/x-www-form-urlencoded↵
@@ -508,7 +514,7 @@ headers but does contain the paired user account name.
 ##### Request
 
 ~~~~ {.example}
-POST /tag HTTP/1.1↵
+POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
@@ -556,7 +562,7 @@ Content-Type: application/xml;charset=utf-8↵
 ##### Request
 
 ~~~~ {.example}
-POST /tag HTTP/1.1↵
+POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
@@ -639,7 +645,7 @@ specification](http://www.oclc.org/developer/platform/query-responses).
 ##### Example
 
 ~~~~ {.example}
-GET /tags HTTP/1.1↵
+GET /radiodns/tag/1/tags HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 ↵
@@ -909,7 +915,7 @@ events is also triggered when the request contains an invalid
 authentication token.
 
 ~~~~ {.example}
-POST /tag HTTP/1.1↵
+POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Authorization:↵
 Content-Type: application/x-www-form-urlencoded↵
@@ -947,7 +953,7 @@ As per the CPA specification, the client begins a client mode registration.
 Because it has no client identifiers, it must first request these.
 
 ~~~~ {.example}
-POST /register HTTP/1.1↵
+POST /radiodns/tag/1/register HTTP/1.1↵
 Host: ap.bbc.co.uk↵
 Content-Type: application/json↵
 ↵
@@ -978,7 +984,7 @@ Now that an identifier and secret have been obtained for the client,
 these can be exchanged for a client token.
 
 ~~~~ {.example}
-POST /token HTTP/1.1↵
+POST /radiodns/tag/1/token HTTP/1.1↵
 Host: ap.bbc.co.uk↵
 Content-type: application/x-www-form-urlencoded↵
 ↵
@@ -1017,7 +1023,7 @@ the tag request can be made again, this time passing the token in a header
 of a POST request to `/tag`.
 
 ~~~~ {.example}
-POST /tag HTTP/1.1↵
+POST /radiodns/tag/1/tag HTTP/1.1↵
 Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
@@ -1090,7 +1096,7 @@ of tags by making a GET request to `/tags` with the token in the header:
 ##### Request
 
 ~~~~ {.example}
-GET /tags HTTP/1.1↵
+GET /radiodns/tag/1/tags HTTP/1.1↵
 Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Host: radiotag.bbc.co.uk↵
 ↵
@@ -1144,7 +1150,7 @@ the `Tag` button as before.
 ##### Request
 
 ~~~~ {.example}
-POST /tag HTTP/1.1↵
+POST /radiodns/tag/1/tag HTTP/1.1↵
 Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
@@ -1265,7 +1271,7 @@ Polling should be attempted for no longer than the `expires_in` duration.
 ##### Request
 
 ~~~~ {.example}
-POST /token HTTP/1.1↵
+POST /radiodns/tag/1/token HTTP/1.1↵
 Host: ap.bbc.co.uk↵
 Content-type: application/json↵
 ↵
@@ -1329,7 +1335,7 @@ stored against the user's account.
 ##### Request
 
 ~~~~ {.example}
-POST /tag HTTP/1.1↵
+POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 Content-Type: application/x-www-form-urlencoded↵
@@ -1382,7 +1388,7 @@ above are returned in the Atom feed.
 ##### Request
 
 ~~~~ {.example}
-GET /tags HTTP/1.1↵
+GET /radiodns/tag/1/tags HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
 ↵
@@ -1466,7 +1472,7 @@ same as in the client case above.
 ##### Request
 
 ~~~~ {.example}
-POST /tag HTTP/1.1↵
+POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
@@ -1526,7 +1532,7 @@ At this point, the client can forget the stored `200 OK` result code.
 ##### Request
 
 ~~~~ {.example}
-GET /tags HTTP/1.1↵
+GET /radiodns/tag/1/tags HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 ↵
 ~~~~
@@ -1550,7 +1556,7 @@ Must request user token
 ##### Request
 
 ~~~~ {.example}
-POST /tag HTTP/1.1↵
+POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
