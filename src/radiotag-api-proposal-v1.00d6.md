@@ -408,7 +408,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=dab:ce1.ce15.c224.0&time=1312301004&time_source=broadcast
+bearer=dab%3Ace1.ce15.c224.0&time=1312301004&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -432,7 +432,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization: Bearer 28b8caec68ae4a8c89dffaa37d131295↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=dab:ce1.ce15.c224.0&time=1312301004&time_source=broadcast
+bearer=dab%3Ace1.ce15.c224.0&time=1312301004&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -485,7 +485,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization: Bearer kldhvkjxhoiqwyeh3khkj3↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=dab:ce1.ce15.c224.0&time=1312302129&time_source=broadcast
+bearer=dab%3Ace1.ce15.c224.0&time=1312302129&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -511,7 +511,7 @@ Content-Type: application/xml;charset=utf-8↵
   <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>PM</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
+    <radiotag:sid>dab%3Ace1.ce15.c224.0</radiotag:sid>
     <radiotag:service>BBC Radio 4</radiotag:service>
     <link rel="image" href="http://node1.bbcimg.co.uk/iplayer/images/episode/b012wjd3_150_84.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b012wjd3?t=1329"/>
@@ -535,7 +535,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=dab:ce1.ce15.c224.0&time=1312195118&time_source=broadcast
+bearer=dab%3Ace1.ce15.c224.0&time=1312195118&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -583,7 +583,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=dab:ce1.ce15.c224.0&time=1312195118&time_source=broadcast
+bearer=dab%3Ace1.ce15.c224.0&time=1312195118&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -936,7 +936,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization:↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=dab:ce1.ce15.c224.0&time=1319201989&time_source=broadcast
+bearer=dab%3Ace1.ce15.c224.0&time=1319201989&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -1042,7 +1042,7 @@ Authorization: Bearer 28b8caec68ae4a8c89dffaa37d131295↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
 ↵
-bearer=dab:ce1.ce15.c224.0&time=1319201989&time_source=broadcast
+bearer=dab%3Ace1.ce15.c224.0&time=1319201989&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -1169,7 +1169,7 @@ Authorization: Bearer 28b8caec68ae4a8c89dffaa37d131295↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
 ↵
-bearer=dab:ce1.ce15.c224.0&time=1319201989&time_source=broadcast
+bearer=dab%3Ace1.ce15.c224.0&time=1319201989&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -1355,7 +1355,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization: Bearer 28b8caec68ae4a8c89dffaa37d131295↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=dab:ce1.ce15.c224.0&time=1319201990&time_source=broadcast
+bearer=dab%3Ace1.ce15.c224.0&time=1319201990&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -1491,7 +1491,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=dab:ce1.ce15.c224.0&time=1319201989&time_source=broadcast
+bearer=dab%3Ace1.ce15.c224.0&time=1319201989&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -1575,7 +1575,7 @@ POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=dab:ce1.ce15.c224.0&time=1319202059&time_source=broadcast
+bearer=dab%3Ace1.ce15.c224.0&time=1319202059&time_source=broadcast
 ~~~~
 
 ##### Response
@@ -1743,7 +1743,7 @@ Host: radiotag.bbc.co.uk↵
 Authorization: Bearer 28b8caec68ae4a8c89dffaa37d131295↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
-bearer=dab:ce1.ce15.c224.0&time=1319202060&time_source=broadcast
+bearer=dab%3Ace1.ce15.c224.0&time=1319202060&time_source=broadcast
 ~~~~
 
 ##### Response
