@@ -429,7 +429,7 @@ Must request client token
 ~~~~ {.example}
 POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
-Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
+Authorization: Bearer 28b8caec68ae4a8c89dffaa37d131295↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
 bearer=dab:ce1.ce15.c224.0&time=1312301004&time_source=broadcast
@@ -664,7 +664,7 @@ specification](http://www.oclc.org/developer/platform/query-responses).
 ~~~~ {.example}
 GET /radiodns/tag/1/tags HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
-Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
+Authorization: Bearer 28b8caec68ae4a8c89dffaa37d131295↵
 ↵
 ~~~~
 
@@ -969,7 +969,7 @@ As per the CPA specification, the client begins a client mode registration.
 Because it has no client identifiers, it must first request these.
 
 ~~~~ {.example}
-POST /radiodns/tag/1/register HTTP/1.1↵
+POST /register HTTP/1.1↵
 Host: ap.bbc.co.uk↵
 Content-Type: application/json↵
 ↵
@@ -1000,15 +1000,15 @@ Now that an identifier and secret have been obtained for the client,
 these can be exchanged for a client token.
 
 ~~~~ {.example}
-POST /radiodns/tag/1/token HTTP/1.1↵
+POST /token HTTP/1.1↵
 Host: ap.bbc.co.uk↵
 Content-type: application/x-www-form-urlencoded↵
 ↵
 {
-  "grant_type": "authorization_code"
+  "grant_type": "http://tech.ebu.ch/cpa/1.0/client_credentials",
   "client_id": "1234",
   "client_secret": "sdalfqealskdfnk13984r2n23klndvs",
-  "scope": "radiotag.bbc.co.uk"
+  "domain": "radiotag.bbc.co.uk"
 }
 ~~~~
 
@@ -1024,11 +1024,9 @@ Cache-control: no-store↵
 Pragma: no-cache↵
 ↵
 {
-  "description": "RadioTAG token for user Alice",
-  "short_description": "Alice",
-  "token": "alsdkfmasdfn1j23nsfjn1",
+  "access_token": "28b8caec68ae4a8c89dffaa37d131295",
   "token_type": "bearer",
-  "scope": "radiotag.bbc.co.uk"
+  "domain_name": "BBC"
 }
 ~~~~
 
@@ -1040,7 +1038,7 @@ of a POST request to `/tag`.
 
 ~~~~ {.example}
 POST /radiodns/tag/1/tag HTTP/1.1↵
-Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
+Authorization: Bearer 28b8caec68ae4a8c89dffaa37d131295↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
 ↵
@@ -1113,7 +1111,7 @@ of tags by making a GET request to `/tags` with the token in the header:
 
 ~~~~ {.example}
 GET /radiodns/tag/1/tags HTTP/1.1↵
-Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
+Authorization: Bearer 28b8caec68ae4a8c89dffaa37d131295↵
 Host: radiotag.bbc.co.uk↵
 ↵
 ~~~~
@@ -1167,7 +1165,7 @@ the `Tag` button as before.
 
 ~~~~ {.example}
 POST /radiodns/tag/1/tag HTTP/1.1↵
-Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
+Authorization: Bearer 28b8caec68ae4a8c89dffaa37d131295↵
 Content-Type: application/x-www-form-urlencoded↵
 Host: radiotag.bbc.co.uk↵
 ↵
@@ -1233,7 +1231,7 @@ Host: ap.bbc.co.uk↵
 {
   "client_id": "1234",
   "client_secret": "sdalfqealskdfnk13984r2n23klndvs",
-  "scope": "radiotag.bbc.co.uk"
+  "domain": "radiotag.bbc.co.uk"
 }
 ~~~~
 
@@ -1250,10 +1248,11 @@ Cache-Control: no-store↵
 Pragma: no-cache↵
 ↵
 {
-  "user_code": "Abf13",
-  "verification_uri": "https://www.bbc.co.uk/id/device",
-  "expires_in": 1800,
-  "interval": 5
+  "device_code": "197bf88c-749a-42e2-93f0-e206bac2252f",
+  "user_code": "AbfZDgJr",
+  "verification_uri": "https://ap.example.com/verify",
+  "interval": 5,
+  "expires_in": 1800
 }
 ~~~~
 
@@ -1287,15 +1286,16 @@ Polling should be attempted for no longer than the `expires_in` duration.
 ##### Request
 
 ~~~~ {.example}
-POST /radiodns/tag/1/token HTTP/1.1↵
+POST /token HTTP/1.1↵
 Host: ap.bbc.co.uk↵
 Content-type: application/json↵
 ↵
 {
-  "grant_type": "authorization_code",
+  "grant_type": "http://tech.ebu.ch/cpa/1.0/device_code",
+  "device_code": "197bf88c-749a-42e2-93f0-e206bac2252f",
   "client_id": "1234",
-  "client_secret": "jkndsfai1324j0fasdkffdsoijgqwer",
-  "scope": "radiotag.bbc.co.uk"
+  "client_secret": "sdalfqealskdfnk13984r2n23klndvs",
+  "domain": "radiotag.bbc.co.uk"
 }
 ~~~~
 
@@ -1333,11 +1333,10 @@ Cache-control: no-store↵
 Pragma: no-cache↵
 ↵
 {
-  "description": "RadioTAG token for user Alice",
-  "short_description": "Alice",
-  "token": "alsdkfmasdfn1j23nsfjn1",
+  "user_name": "Alice",
+  "access_token": "28b8caec68ae4a8c89dffaa37d131295",
   "token_type": "bearer",
-  "scope": "radiotag.bbc.co.uk"
+  "domain_name": "BBC"
 }
 ~~~~
 
@@ -1353,7 +1352,7 @@ stored against the user's account.
 ~~~~ {.example}
 POST /radiodns/tag/1/tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
-Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
+Authorization: Bearer 28b8caec68ae4a8c89dffaa37d131295↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
 bearer=dab:ce1.ce15.c224.0&time=1319201990&time_source=broadcast
@@ -1406,7 +1405,7 @@ above are returned in the Atom feed.
 ~~~~ {.example}
 GET /radiodns/tag/1/tags HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
-Authorization: Bearer alsdkfmasdfn1j23nsfjn1↵
+Authorization: Bearer 28b8caec68ae4a8c89dffaa37d131295↵
 ↵
 ~~~~
 
@@ -1706,10 +1705,11 @@ Host: ap.bbc.co.uk↵
 Content-type: application/x-www-form-urlencoded↵
 ↵
 {
-  "grant_type": "authorization_code",
+  "grant_type": "http://tech.ebu.ch/cpa/1.0/device_code",
+  "device_code": "197bf88c-749a-42e2-93f0-e206bac2252f",
   "client_id": "1234",
-  "device_code": "jkndsfai1324j0fasdkffdsoijgqwer",
-  "scope": "radiotag.bbc.co.uk"
+  "client_secret": "sdalfqealskdfnk13984r2n23klndvs",
+  "domain": "radiotag.bbc.co.uk"
 }
 ~~~~
 
@@ -1723,11 +1723,10 @@ Cache-control: no-store↵
 Pragma: no-cache↵
 ↵
 {
-  "description": "RadioTAG token for user Alice",
-  "short_name": "Alice",
-  "token": "alsdkfmasdfn1j23nsfjn1",
+  "user_name": "Alice",
+  "token": "28b8caec68ae4a8c89dffaa37d131295",
   "token_type": "bearer",
-  "scope": "radiotag.bbc.co.uk"
+  "domain_name": "BBC"
 }
 ~~~~
 
@@ -1741,7 +1740,7 @@ acquired `Authorization` header token value:
 ~~~~ {.example}
 POST /tag HTTP/1.1↵
 Host: radiotag.bbc.co.uk↵
-Authorization: Bearer jkndsfai1324j0fasdkffdsoijgqwer↵
+Authorization: Bearer 28b8caec68ae4a8c89dffaa37d131295↵
 Content-Type: application/x-www-form-urlencoded↵
 ↵
 bearer=dab:ce1.ce15.c224.0&time=1319202060&time_source=broadcast
