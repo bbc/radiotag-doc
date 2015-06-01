@@ -350,12 +350,10 @@ bearer       RadioDNS bearerURI as defined in ETSI TS 103 270, e.g.
 time         Whole number of seconds since 00:00a.m Jan 1 1970 UTC (Unix Epoch)
 
 time_source  (Optional) where the time is sourced from, value of either:
-
              `user`      the user has set the client clock manually,
              `broadcast` derived from the bearer's time source (e.g. RDS for FM,
                          the FIG in DAB),
-             `ntp`       derived from IP source
-
+             `ntp`       derived from IP source.
              When not set it is assumed the time is derived from the bearer's
              time source.
 
