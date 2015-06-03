@@ -1,6 +1,6 @@
 % RadioTAG 1.00 specification, draft 6
 % Sean O'Halpin (BBC R&D); Chris Lowis (BBC R&D)
-% 2015-06-
+% 2015-06-03
 ## Front matter
 ### Authors
 
@@ -26,7 +26,7 @@ Andy Buckingham (togglebit), Robin Cooksey (Frontier Silicon)
     - 'paired' changed to 'user (identity)'
     - 'client' changed to 'receiver'
     - 'can_register' changed to 'identity'
-- Draft 6: 2015-06-
+- Draft 6: 2015-06-03
     - Updated terminology to reflect CPA terms
     - Replaced Tag auth procedure with draft CPA procedure
     - Updated and simplified req/rep examples, ensured compliance with latest
