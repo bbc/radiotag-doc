@@ -38,7 +38,8 @@ Andy Buckingham (togglebit), Robin Cooksey (Frontier Silicon)
     - Add optional 'time_source' parameter
     - Change RadioDNS domain params format to bearerURI
     - Replace radiotag:sid and :service with simplified combined element, using
-      bearerURI format.
+      bearerURI format
+    - Remove 100x100 image size restriction
 
 ### URL
 
@@ -757,7 +758,7 @@ published             the datetime of creation (= tag time)            20
 
 summary               text only - i.e. must not include HTML tags      180
 
-link rel="image"      link to 100x100 image representing the tag       255
+link rel="image"      link to an image representing the tag            255
 
 link rel="self"       a user accessible url for the tag                255
 
