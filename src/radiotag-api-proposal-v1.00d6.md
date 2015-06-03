@@ -866,27 +866,25 @@ The example below shows these elements in context:
 
 ### Data elements
 
-----------------------------------------------------------------------------------------------
-Data element      Max. size in bytes  Notes
-----------------  ------------------  --------------------------------------------------------
-author            16                  Atom entry
+------------------------------------------------------------------------------------------
+Data element  Max. size in bytes  Notes
+------------  ------------------  --------------------------------------------------------
+author        16                  Atom entry
 
-id                48                  Atom entry
+id            48                  Atom entry
 
-pin number        10
+pin number    10
 
-service id (sid)  32                  As specified by RadioDNS
+bearerURI     32                  As specified by RadioDNS
 
-summary           180                 Atom entry
+summary       180                 Atom entry
 
-title             128                 Atom entry (compatible with DAB/RDS Livetext)
+title         128                 Atom entry (compatible with DAB/RDS Livetext)
 
-token             48
+url           255                 See [RFC 2616 Section
+                                  3.2.1](http://tools.ietf.org/html/rfc2616#section-3.2.1)
 
-url               255                 See [RFC 2616 Section
-                                      3.2.1](http://tools.ietf.org/html/rfc2616#section-3.2.1)
-
-----------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
 
 # Appendix
 
