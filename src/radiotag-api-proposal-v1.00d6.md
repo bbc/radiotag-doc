@@ -37,6 +37,8 @@ Andy Buckingham (togglebit), Robin Cooksey (Frontier Silicon)
     - Changed references from 'station' to 'radio service' or 'bearer'
     - Add optional 'time_source' parameter
     - Change RadioDNS domain params format to bearerURI
+    - Replace radiotag:sid and :service with simplified combined element, using
+      bearerURI format.
 
 ### URL
 
@@ -457,8 +459,7 @@ Content-Type: application/xml;charset=utf-8↵
   <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>PM</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://node1.bbcimg.co.uk/iplayer/images/episode/b012wjd3_150_84.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b012wjd3?t=204"/>
     <id>urn:uuid:fb669d2c-63b3-420b-9dd6-131f5d58e68a</id>
@@ -509,8 +510,7 @@ Content-Type: application/xml;charset=utf-8↵
   <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>PM</title>
-    <radiotag:sid>dab%3Ace1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://node1.bbcimg.co.uk/iplayer/images/episode/b012wjd3_150_84.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b012wjd3?t=1329"/>
     <id>urn:uuid:8facc0c0-ce13-4349-8664-dc71d55c6c97</id>
@@ -560,8 +560,7 @@ Content-Type: application/xml;charset=utf-8↵
   <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>Meet David Sedaris</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://node1.bbcimg.co.uk/iplayer/images/episode/b01211y4_150_84.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b01211y4?t=518"/>
     <id>urn:uuid:5001c814-7a28-42a4-b35a-eef17abc7249</id>
@@ -607,8 +606,7 @@ Content-Type: application/xml;charset=utf-8↵
   <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>Meet David Sedaris</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://node1.bbcimg.co.uk/iplayer/images/episode/b01211y4_150_84.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b01211y4?t=518"/>
     <id>urn:uuid:5001c814-7a28-42a4-b35a-eef17abc7249</id>
@@ -706,8 +704,7 @@ Content-Type: application/xml;charset=utf-8↵
   <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>PM</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://radiotag.bbc.co.uk/images/episode/b012wjd3_150_84.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b012wjd3?t=1328"/>
     <id>urn:uuid:9f61f2c1-f3f7-4ff7-bc61-32f0e468054d</id>
@@ -751,24 +748,24 @@ All dates are UTC in ISO format ([ISO
 
 The RadioTAG specification also requires the following:
 
------------------------------------------------------------------------------
-Element           Description                                      Max length
-----------------  -----------------------------------------------  ----------
-author            name of tag service provider (e.g. BBC, Global)  16
+---------------------------------------------------------------------------------
+Element               Description                                      Max length
+----------------      -----------------------------------------------  ----------
+author                name of tag service provider (e.g. BBC, Global)  16
 
-published         the datetime of creation (= tag time)            20
+published             the datetime of creation (= tag time)            20
 
-summary           text only - i.e. must not include HTML tags      180
+summary               text only - i.e. must not include HTML tags      180
 
-link rel="image"  link to 100x100 image representing the tag       255
+link rel="image"      link to 100x100 image representing the tag       255
 
-link rel="self"   a user accessible url for the tag                255
+link rel="self"       a user accessible url for the tag                255
 
-radiotag:service  the human-readable name of the service tagged    16
+radiotag:service      the human-readable name of the service tagged    16
 
-radiotag:sid      RadioDNS service identifier                      32
+radiotag:service uri  the radio service's bearer URI                   32
 
------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
 
 Note the difference here between `id` and `link rel="self"`. `id` is a
 globally unique identifier. `link rel="self"` gives the url as visible
@@ -804,8 +801,7 @@ The example below shows these elements in context:
   <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>Meet David Sedaris</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://node1.bbcimg.co.uk/iplayer/images/episode/b01211y4_150_84.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b01211y4?t=518"/>
     <id>urn:uuid:5001c814-7a28-42a4-b35a-eef17abc7249</id>
@@ -835,8 +831,7 @@ The example below shows these elements in context:
   <os:itemsPerPage>3</os:itemsPerPage>
   <entry>
     <title>PM</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://node1.bbcimg.co.uk/iplayer/images/episode/b012wjd3_150_84.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b012wjd3?t=1329"/>
     <id>urn:uuid:8facc0c0-ce13-4349-8664-dc71d55c6c97</id>
@@ -846,8 +841,7 @@ The example below shows these elements in context:
   </entry>
   <entry>
     <title>PM</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://node1.bbcimg.co.uk/iplayer/images/episode/b012wjd3_150_84.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b012wjd3?t=1328"/>
     <id>urn:uuid:9f61f2c1-f3f7-4ff7-bc61-32f0e468054d</id>
@@ -857,8 +851,7 @@ The example below shows these elements in context:
   </entry>
   <entry>
     <title>PM</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://node1.bbcimg.co.uk/iplayer/images/episode/b012wjd3_150_84.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b012wjd3?t=1328"/>
     <id>urn:uuid:8e67aef6-4e8c-47ac-bc10-f89d4d5bac17</id>
@@ -1076,8 +1069,7 @@ Content-Type: application/xml;charset=utf-8↵
   <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>Feedback</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://radiotag.bbc.co.uk/images/episode/b015zsx2.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b015zsx2?t=1789"/>
     <id>urn:uuid:661417da-cb8d-4fd0-a8fd-9b55ed2086d7</id>
@@ -1141,8 +1133,7 @@ Content-Type: application/xml;charset=utf-8↵
   <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>Feedback</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://radiotag.bbc.co.uk/images/episode/b015zsx2.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b015zsx2?t=1789"/>
     <id>urn:uuid:661417da-cb8d-4fd0-a8fd-9b55ed2086d7</id>
@@ -1200,8 +1191,7 @@ Content-Type: application/xml;charset=utf-8↵
   <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>Feedback</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://radiotag.bbc.co.uk/images/episode/b015zsx2.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b015zsx2?t=1789"/>
     <id>urn:uuid:4b8a1b72-f76b-4dc2-9db8-cb15042454ea</id>
@@ -1379,8 +1369,7 @@ Content-Type: application/xml;charset=utf-8↵
   <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>Feedback</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://radiotag.bbc.co.uk/images/episode/b015zsx2.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b015zsx2?t=1790"/>
     <id>urn:uuid:5967db0e-dc63-428d-a075-90cf316ded5d</id>
@@ -1430,8 +1419,7 @@ Content-Type: application/xml;charset=utf-8↵
   <os:itemsPerPage>3</os:itemsPerPage>
   <entry>
     <title>Feedback</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://radiotag.bbc.co.uk/images/episode/b015zsx2.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b015zsx2?t=1790"/>
     <id>urn:uuid:5967db0e-dc63-428d-a075-90cf316ded5d</id>
@@ -1441,8 +1429,7 @@ Content-Type: application/xml;charset=utf-8↵
   </entry>
   <entry>
     <title>Feedback</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://radiotag.bbc.co.uk/images/episode/b015zsx2.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b015zsx2?t=1789"/>
     <id>urn:uuid:4b8a1b72-f76b-4dc2-9db8-cb15042454ea</id>
@@ -1452,8 +1439,7 @@ Content-Type: application/xml;charset=utf-8↵
   </entry>
   <entry>
     <title>Feedback</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://radiotag.bbc.co.uk/images/episode/b015zsx2.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b015zsx2?t=1789"/>
     <id>urn:uuid:661417da-cb8d-4fd0-a8fd-9b55ed2086d7</id>
@@ -1524,8 +1510,7 @@ Content-Type: application/xml;charset=utf-8↵
   <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>The Archers</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://radiotag.bbc.co.uk/images/episode/b015zs13.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b015zs13?t=59"/>
     <id>urn:uuid:3bfaa9dd-11ed-45f9-8f3c-6587db086b04</id>
@@ -1603,8 +1588,7 @@ Content-Type: application/xml;charset=utf-8↵
   <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>The Archers</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://radiotag.bbc.co.uk/images/episode/b015zs13.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b015zs13?t=59"/>
     <id>urn:uuid:8ea43558-70c2-4a4a-aeb9-8ffeee700898</id>
@@ -1771,8 +1755,7 @@ Content-Type: application/xml;charset=utf-8↵
   <os:itemsPerPage>1</os:itemsPerPage>
   <entry>
     <title>The Archers</title>
-    <radiotag:sid>dab:ce1.ce15.c224.0</radiotag:sid>
-    <radiotag:service>BBC Radio 4</radiotag:service>
+    <radiotag:service uri="dab:ce1.ce15.c224.0">BBC Radio 4</radiotag:service>
     <link rel="image" href="http://radiotag.bbc.co.uk/images/episode/b015zs13.jpg"/>
     <link rel="canonical" href="http://www.bbc.co.uk/programmes/b015zs13?t=60"/>
     <id>urn:uuid:fcbb6008-aa54-45b4-91c9-78ec0655f9d7</id>
